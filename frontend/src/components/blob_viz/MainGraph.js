@@ -749,15 +749,16 @@ const MainGraph = ({ vizApiUrl, apiUrl, defaultEntities }) => {
                         .attr('stroke', d => categoryNodeColors[d.category])
                         .attr('fill', d => categoryNodeColors[d.category])
                         .on('mouseover', (e) => {
+                            const circle = d3.select(e.target);
+                            const nodeData = circle.data()[0];
+                            setDetailNodeLegend(nodeData);
                             if(currentView.view !== "root") return;
-                            const circle = d3.select(e.target).classed('hovered', true);
+                            circle.classed('hovered', true);
                             const nodeId = circle.data()[0].id;
                             d3.selectAll('g.linkgroup g.' + idToClass(nodeId)).classed('hovered', true);
 
                             d3.selectAll('g.linkgroup g.' + idToClass(nodeId) + '.hovered text').classed('hovered', true);
 
-                            const nodeData = circle.data()[0];
-                            setDetailNodeLegend(nodeData);
                         })
                         .on('mouseout', (e) => {
                             if(currentView.view !== "root") return;
