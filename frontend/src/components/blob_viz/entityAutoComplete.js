@@ -2,40 +2,30 @@ import React from 'react';
 import { DragDropContext } from "react-beautiful-dnd";
 import Column from "./Column";
 
+const EntityAutoComplete = ({ fromEntityAutoComplete, apiUrl, initialNodes, suggestionNodes = [{
+        "id": "go:GO:0006954",
+        "label": "inflammation",
+        "category": 3
+    }] }) => {
 
-const suggestionDummyNode = {
-    "id": "go:GO:0006954",
-    "label": "inflammation",
-    "category": 3
-}
-const dummyNode = {
-    "id": "uniprot:P05231",
-    "label": "Interleukin-6",
-    "category": 1
-}
-
-
-let dummyData = {
-    tasks: [dummyNode, suggestionDummyNode],
-    columns: {
-        'column-1': {
-            id: 'column-1',
-            title: 'Search Result',
-            taskIds: [suggestionDummyNode.id],
+    const dummyData = {
+        tasks: [...initialNodes, ...suggestionNodes],
+        columns: {
+            'column-1': {
+                id: 'column-1',
+                title: 'Search Result',
+                taskIds: suggestionNodes.map(d => d.id),
+            },
+            'column-2': {
+                id: 'column-2',
+                title: 'Pinned',
+                taskIds: initialNodes.map(d => d.id),
+            }
         },
-        'column-2': {
-            id: 'column-2',
-            title: 'Pinned',
-            taskIds: [dummyNode.id],
-        }
-    },
-    columnOrder: ['column-1', 'column-2']
-};
+        columnOrder: ['column-1', 'column-2']
+    };
 
-
-
-const EntityAutoComplete = ({ fromEntityAutoComplete, apiUrl }) => {
-    let [dataState, setDataState] = React.useState(dummyData);
+    const [dataState, setDataState] = React.useState(dummyData);
 
     const handleChange = (event) => {
         if (event.target.value.length === 0) return;
@@ -110,7 +100,7 @@ const EntityAutoComplete = ({ fromEntityAutoComplete, apiUrl }) => {
         const nodeList = col2TaskIds;
         fromEntityAutoComplete(nodeList);
 
-    }, [col2TaskIds, fromEntityAutoComplete]);
+    }, [col2TaskIds, fromEntityAutoComplete, dataState]);
 
     return <div>
         <div className="form-floating mb-3">

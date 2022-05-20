@@ -12,18 +12,6 @@ import { idToClass, calculateCategoryCenters, calculateCategoryCentersEllipse, n
 import BlobLegends from './BlobLegends';
 import NodeDetail from './NodeDetail';
 
-const dummyData = {
-    'nodes': { nodes: ["uniprot:P05231"] },
-    category_count: {
-        categorycount: {
-            "1": 5,
-            "2": 5,
-            "3": 5,
-            "4": 5,
-        }
-    }
-};
-
 const ALPHA_TARGET = 0.1;
 const ALPHA_MINVAL = -1;
 const ALPHA_INIT = 1;
@@ -121,12 +109,29 @@ const updateForces = ({ simulation, maxLinkDist }) => {
 }
 
 
-const MainGraph = ({ vizApiUrl, apiUrl }) => {
+const MainGraph = ({ vizApiUrl, apiUrl, defaultEntities }) => {
+    // Will be moved to component prop later
+    const initialSuggestionNodes = [{
+        "id": "go:GO:0006954",
+        "label": "inflammation",
+        "category": 3
+    }];
+
+    const initialPinnedNodes = [];
+    for(let i = 0; i < defaultEntities.nodes.nodes.length; i++) {
+        initialPinnedNodes.push({
+            id: defaultEntities.nodes.nodes[i],
+            label: defaultEntities.nodes.labels[i],
+            category: defaultEntities.nodes.categories[i]
+        });
+    }
+
     console.log("Module Loading");
+    console.log(initialPinnedNodes);
 
     const svgRef = React.useRef();
     let maxLinkDist = 100;
-    let selectedNode = dummyData;
+    let selectedNode = defaultEntities;
     const simulation = d3.forceSimulation();
 
     simulation.stop()
@@ -585,7 +590,8 @@ const MainGraph = ({ vizApiUrl, apiUrl }) => {
         // This is not actually an effect, but it works like an effect as it is run after component is mounted and rendered.
         console.log("effect called");
         if (selectedNode.nodes.nodes.length === 0) {
-            setSelectedNode(dummyData);
+            console.log("reseting nodes");
+            setSelectedNode(defaultEntities);
             return;
         }
 
@@ -749,6 +755,9 @@ const MainGraph = ({ vizApiUrl, apiUrl }) => {
                             d3.selectAll('g.linkgroup g.' + idToClass(nodeId)).classed('hovered', true);
 
                             d3.selectAll('g.linkgroup g.' + idToClass(nodeId) + '.hovered text').classed('hovered', true);
+
+                            const nodeData = circle.data()[0];
+                            setDetailNodeLegend(nodeData);
                         })
                         .on('mouseout', (e) => {
                             if(currentView.view !== "root") return;
@@ -766,8 +775,6 @@ const MainGraph = ({ vizApiUrl, apiUrl }) => {
                                 nodeSelection.first = nodeData.id;
 
                                 d3.selectAll('g.linkgroup g.' + idToClass(nodeData.id)).classed('largehovered', true);
-
-                                setDetailNodeLegend(nodeData);
                             }
                             else {
                                 d3.select(".node circle.selected").classed("selected", false);
@@ -959,7 +966,18 @@ const MainGraph = ({ vizApiUrl, apiUrl }) => {
                     display: "flex",
                     flexDirection: "row",
                 }}>
-                    <SidePanel currentView={{view: "root"}} simulation={simulation} maxLinkDist={maxLinkDist} apiUrl={vizApiUrl} updateNodeSuggestions={updateNodeSuggestions} nodeRadiusScaleChanged={nodeRadiusScaleChanged} forceProperties={forceProperties} updateForces={updateForces} />
+                    <SidePanel
+                        currentView={{view: "root"}}
+                        simulation={simulation}
+                        maxLinkDist={maxLinkDist}
+                        apiUrl={vizApiUrl}
+                        updateNodeSuggestions={updateNodeSuggestions}
+                        initialPinnedNodes={initialPinnedNodes}
+                        initialSuggestionNodes={initialSuggestionNodes}
+                        nodeRadiusScaleChanged={nodeRadiusScaleChanged}
+                        forceProperties={forceProperties}
+                        updateForces={updateForces}
+                    />
                     <div style={{
                         width: "100%",
                         minWidth: "800px"
@@ -1027,6 +1045,7 @@ const MainGraph = ({ vizApiUrl, apiUrl }) => {
                                     height="60%"
                                 />
                                 <NodeDetail
+                                    apiUrl={apiUrl}
                                     onNodeDetailChange={(dataFromChild) => { setDetailNodeLegend = dataFromChild; }}
                                     height="40%"
                                 />

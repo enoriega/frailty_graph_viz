@@ -3,7 +3,7 @@ import EntityAutoComplete from "./entityAutoComplete";
 import { useState } from "react";
 import "../styles/SidePanel.scss";
 
-function SidePanel({ currentView, simulation, maxLinkDist, apiUrl, updateNodeSuggestions, nodeRadiusScaleChanged, forceProperties, updateForces }) {
+function SidePanel({ currentView, simulation, maxLinkDist, apiUrl, updateNodeSuggestions, initialPinnedNodes, initialSuggestionNodes, nodeRadiusScaleChanged, forceProperties, updateForces }) {
     const [entityOpen, setEntityOpen] = useState(false);
     const [visualOpen, setVisualOpen] = useState(false);
     const [graphParamsOpen, setGraphParamsOpen] = useState(false);
@@ -36,7 +36,12 @@ function SidePanel({ currentView, simulation, maxLinkDist, apiUrl, updateNodeSug
                 <Collapse in={entityOpen}>
                     <ul className="btn-toggle-nav list-unstyled fw-normal pb-1 small">
                         <li>
-                            <EntityAutoComplete fromEntityAutoComplete={updateNodeSuggestions} apiUrl={apiUrl} />
+                            <EntityAutoComplete
+                                fromEntityAutoComplete={updateNodeSuggestions}
+                                apiUrl={apiUrl}
+                                initialNodes={initialPinnedNodes}
+                                suggestionNodes={initialSuggestionNodes}
+                            />
                         </li>
                         <li>
                             <label htmlFor="cluster1count" className="form-label">Protein Entity Count</label>
