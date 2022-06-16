@@ -47,8 +47,8 @@ const forceProperties = {
     separation: {
         enabled: true,
         strength: 0.1,
-        radius: (width + height) / 2.0 * 0.25,
-        radiusFunc: (width, height) => (width + height) / 2.0 * 0.25
+        radius: (width + height) / 2.0 * 0.2,
+        radiusFunc: (width, height) => (width + height) / 2.0 * 0.2
     },
     link: {
         enabled: false,
@@ -908,21 +908,13 @@ const MainGraph = ({ vizApiUrl, apiUrl, defaultEntities }) => {
 
             relationViewSimulation.alpha(ALPHA_INIT).alphaTarget(ALPHA_TARGET).restart();
 
-            const _intercluster_opac_el = d3.select("#interclusterEdgeOpacity").node();
-            _intercluster_opac_el.value = 0;
-            _intercluster_opac_el.dispatchEvent(new Event('change'));
-            const _intracluster_opac_el = d3.select("#intraclusterEdgeOpacity").node();
-            _intracluster_opac_el.value = 0;
-            _intracluster_opac_el.dispatchEvent(new Event('change'));
+            d3.selectAll("g.line").selectAll('line').style('display', 'none');
+            d3.selectAll("g.line").selectAll('text').style('display', 'none');
 
             // Hide hulls and links
             d3.selectAll("g.hullgroup").style("opacity", 0).transition().duration(transitionSpeed).on("end", () => {
                 d3.selectAll("g.hullgroup").style("display", "none");
             });
-            // d3.selectAll("g.linkgroup").style("opacity", 0).transition().duration(transitionSpeed).on("end", () => {
-            //     d3.selectAll("g.linkgroup").style("display", "none");
-            // });
-
             
             // Initialize back button
             const backbtn = d3.select(".ui .backbtn");
@@ -941,6 +933,8 @@ const MainGraph = ({ vizApiUrl, apiUrl, defaultEntities }) => {
                 relationViewSimulation.stop();
                 simulation.alpha(ALPHA_INIT).restart();
 
+                d3.selectAll("g.line").selectAll('line').style('display', 'inline-block');
+                d3.selectAll("g.line").selectAll('text').style('display', 'inline-block');
 
                 d3.select("g.relationview g.relationlinks").transition().duration(transitionSpeed).style("opacity",0).on("end", () => {
                     d3.select("g.relationview g.relationlinks").html("");

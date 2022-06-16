@@ -130,7 +130,6 @@ async def get_best_subgraph(nodes: NodesList, category_count: CategoryCount,
     nodes = nodes.nodes
     category_count = category_count.categorycount
 
-    # O(number of cat * cat_1 * cat_2 * ... * cat_n * 2NlogN * \sum{cat_i})
     catFinalList = {}
     for cat_id, cat_count in category_count.items():
         finalList = [{
@@ -138,6 +137,7 @@ async def get_best_subgraph(nodes: NodesList, category_count: CategoryCount,
             'freq': max_freq + 1,
             'pinned': True
         } for node in nodes if get_category_number_from_id(node) == cat_id]
+        search_space = []
         for node in nodes:
             neighbors = list(map(lambda d: {
                 'id': d[0],
@@ -154,21 +154,17 @@ async def get_best_subgraph(nodes: NodesList, category_count: CategoryCount,
             }, filter(lambda x: get_category_number_from_id(x[0]) == cat_id, dict(G_se_rev[node]).items())))
             from_neighbors = sorted(neighbors, key=lambda x: x['freq'], reverse=True)[
                              :cat_count]
-            
-            seen = set(list(map(lambda x: x['id'], finalList)) + nodes)
-            for e in (to_neighbors + from_neighbors):
-                found = e
-                if e['id'] in seen:
-                    found_i = next((i for (i, d) in enumerate(
-                        finalList) if d['id'] == e['id']), None)
-                    if not found_i:
-                        finalList.append(e)
-                        continue
-                    found = finalList.pop(found_i)
-                    found = found if found['freq'] >= e['freq'] else e
-                finalList.append(found)
-                seen.add(found['id'])
-        catFinalList[cat_id] = sorted(finalList, key=lambda x: x['freq'], reverse=True)[:cat_count]
+
+            for neighbor in (to_neighbors + from_neighbors):
+                for search_space_item in search_space:
+                    if search_space_item['id'] == neighbor['id']:
+                        search_space_item['total_search_freq'] += neighbor['freq']
+                        break
+                else:
+                    neighbor['total_search_freq'] = neighbor['freq']
+                    search_space.append(neighbor)
+
+        catFinalList[cat_id] = sorted(search_space, key=lambda x: x['total_search_freq'], reverse=True)[:cat_count]
 
     finalNodes = []
     for v in catFinalList.values():
@@ -202,7 +198,6 @@ async def search_node(node_text: str, n: int, data: PreprocessedVizData = Depend
 
     search_space = set(list(G_se.nodes) + list(map(lambda x: x[1]["label"].strip(
     ), filter(lambda x: "label" in x[1], G_se.nodes.data()))))
-    # TODO Enrique, investigate difflib to increase the search space surface
     results = difflib.get_close_matches(node_text, search_space, n=n)
 
     ret = []
