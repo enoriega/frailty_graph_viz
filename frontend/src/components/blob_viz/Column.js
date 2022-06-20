@@ -27,7 +27,7 @@ const Column = ({column, tasks}) => {
                         ref={provided.innerRef}
                         {...provided.droppableProps}
                     >
-                        {tasks.map((task, index) => <Task key={task.id} task={task} index={index} />)}
+                        {tasks.map((task, index) => <Task key={task.id.text} task={task} index={index} />)}
                         {provided.placeholder}
                     </TaskList>
 

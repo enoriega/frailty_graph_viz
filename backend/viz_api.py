@@ -190,31 +190,31 @@ async def get_best_subgraph(nodes: NodesList, category_count: CategoryCount,
     }
 
 
-@api_router.get("/searchnode/{node_text}/{n}")
-async def search_node(node_text: str, n: int, data: PreprocessedVizData = Depends(get_blob_graph)):
-    # https://stackoverflow.com/questions/10018679/python-find-closest-string-from-a-list-to-another-string
+# @api_router.get("/searchnode/{node_text}/{n}")
+# async def search_node(node_text: str, n: int, data: PreprocessedVizData = Depends(get_blob_graph)):
+#     # https://stackoverflow.com/questions/10018679/python-find-closest-string-from-a-list-to-another-string
 
-    _, G_se, G_se_rev = data
+#     _, G_se, G_se_rev = data
 
-    search_space = set(list(G_se.nodes) + list(map(lambda x: x[1]["label"].strip(
-    ), filter(lambda x: "label" in x[1], G_se.nodes.data()))))
-    results = difflib.get_close_matches(node_text, search_space, n=n)
+#     search_space = set(list(G_se.nodes) + list(map(lambda x: x[1]["label"].strip(
+#     ), filter(lambda x: "label" in x[1], G_se.nodes.data()))))
+#     results = difflib.get_close_matches(node_text, search_space, n=n)
 
-    ret = []
-    for r in results:
-        node = next(filter(lambda x: x[0] == r, G_se.nodes.data()), None)
-        if not node:
-            node = next(filter(lambda x: 'label' in x[1] and x[1]['label'].strip(
-            ) == r, G_se.nodes.data()), None)
-        ret.append({
-            "id": node[0],
-            "label": node[1]['label'] if 'label' in node[1] else node[0],
-            'category': get_category_number_from_id(node[0])
-        })
+#     ret = []
+#     for r in results:
+#         node = next(filter(lambda x: x[0] == r, G_se.nodes.data()), None)
+#         if not node:
+#             node = next(filter(lambda x: 'label' in x[1] and x[1]['label'].strip(
+#             ) == r, G_se.nodes.data()), None)
+#         ret.append({
+#             "id": node[0],
+#             "label": node[1]['label'] if 'label' in node[1] else node[0],
+#             'category': get_category_number_from_id(node[0])
+#         })
 
-    return {
-        "matches": ret
-    }
+#     return {
+#         "matches": ret
+#     }
 
 def interaction(source, destination, bidirectional: bool, graph: MultiDiGraph = get_graph(),
                       significance=get_significance()):

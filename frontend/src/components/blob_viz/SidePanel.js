@@ -3,7 +3,7 @@ import EntityAutoComplete from "./entityAutoComplete";
 import { useState } from "react";
 import "../styles/SidePanel.scss";
 
-function SidePanel({ currentView, simulation, maxLinkDist, apiUrl, updateNodeSuggestions, initialPinnedNodes, initialSuggestionNodes, nodeRadiusScaleChanged, forceProperties, updateForces, onChangeCategoryDetails }) {
+function SidePanel({ currentView, simulation, maxLinkDist, apiUrl, updateSelectedNode, initialPinnedNodes, nodeRadiusScaleChanged, forceProperties, updateForces, onChangeCategoryDetails }) {
     const [entityOpen, setEntityOpen] = useState(false);
     const [visualOpen, setVisualOpen] = useState(false);
     const [graphParamsOpen, setGraphParamsOpen] = useState(false);
@@ -20,10 +20,6 @@ function SidePanel({ currentView, simulation, maxLinkDist, apiUrl, updateNodeSug
         overflow: "auto",
         maxHeight: "80vh"
     }}>
-        {/* <h4>Entropy</h4>
-        <div className="progress mb-5">
-            <div id="alpha_value" className="progress-bar" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
-        </div> */}
         <span className="d-flex align-items-center pb-3 mb-3 link-dark text-decoration-none border-bottom">
             <span className="fs-5" style={{fontWeight: "bold"}}>Controls</span>
         </span>
@@ -41,10 +37,9 @@ function SidePanel({ currentView, simulation, maxLinkDist, apiUrl, updateNodeSug
                     <ul className="btn-toggle-nav list-unstyled fw-normal pb-1 small">
                         <li>
                             <EntityAutoComplete
-                                fromEntityAutoComplete={updateNodeSuggestions}
+                                updateSelectedNode={updateSelectedNode}
                                 apiUrl={apiUrl}
-                                initialNodes={initialPinnedNodes}
-                                suggestionNodes={initialSuggestionNodes}
+                                initialPinnedNodes={initialPinnedNodes}
                             />
                         </li>
                         {categoryDetails.map(({id, color, encoding}, i) => <li key={encoding}>
@@ -95,16 +90,6 @@ function SidePanel({ currentView, simulation, maxLinkDist, apiUrl, updateNodeSug
                 </Button>
                 <Collapse in={graphParamsOpen}>
                     <ul className="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                        {/* <li>
-                            <div className="form-check form-switch m-3">
-                                <input type="checkbox" className="form-check-input" id="simulationenabled" defaultChecked={true} onChange={e => {
-                                    if(currentView.view !== "root") return;
-                                    if (e.target.checked) simulation.alpha(1).restart();
-                                    else simulation.stop();
-                                }} />
-                                <label className="form-check-label" htmlFor="simulationenabled"><b>Simulation</b></label>
-                            </div>
-                        </li> */}
                         <li>
                             <span><b>Node Radius Scale</b></span><br/>
                             <div className="form-check form-switch m-3">

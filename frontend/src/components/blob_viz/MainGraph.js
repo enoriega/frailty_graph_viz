@@ -132,13 +132,6 @@ const MainGraph = ({ vizApiUrl, apiUrl, defaultEntities }) => {
 
     console.log("Module Loading");
 
-
-    const initialSuggestionNodes = [{
-        "id": "go:GO:0006954",
-        "label": "inflammation",
-        "category": 3
-    }];
-
     let setBlobLegendsColors = null;
     let setSidePanelCategoryDetails = null;
 
@@ -159,10 +152,10 @@ const MainGraph = ({ vizApiUrl, apiUrl, defaultEntities }) => {
         selectedNode = d;
         d3UpdateFunc();
     };
-    const updateNodeSuggestions = (d) => {
+    const updateSelectedNode = (d) => {
         setSelectedNode({
             ...selectedNode,
-            nodes: { nodes: d }
+            nodes: { nodes: d[0] }
         });
     };
 
@@ -175,11 +168,6 @@ const MainGraph = ({ vizApiUrl, apiUrl, defaultEntities }) => {
         .force("center", d3.forceCenter())
         .force("forceX", d3.forceX())
         .force("forceY", d3.forceY());
-        // .force("r", d3.forceRadial(
-        //     d => forceProperties.radial.categoryRadius[d['category'] - 1],
-        //     width / 2,
-        //     height / 2
-        // ));
 
     const cleanUp = () => {
         simulation.stop();
@@ -989,17 +977,21 @@ const MainGraph = ({ vizApiUrl, apiUrl, defaultEntities }) => {
                     flexDirection: "row",
                 }}>
                     <SidePanel
-                        currentView={{view: "root"}}
-                        simulation={simulation}
-                        maxLinkDist={maxLinkDist}
                         apiUrl={vizApiUrl}
-                        updateNodeSuggestions={updateNodeSuggestions}
-                        initialPinnedNodes={initialPinnedNodes}
-                        initialSuggestionNodes={initialSuggestionNodes}
-                        nodeRadiusScaleChanged={nodeRadiusScaleChanged}
+
+                        currentView={{view: "root"}}
+
                         forceProperties={forceProperties}
                         updateForces={updateForces}
+                        simulation={simulation}
+                        maxLinkDist={maxLinkDist}
+
+
+                        initialPinnedNodes={initialPinnedNodes}
+                        updateSelectedNode={updateSelectedNode}
                         onChangeCategoryDetails={(dataFromChild) => {setSidePanelCategoryDetails = dataFromChild} }
+
+                        nodeRadiusScaleChanged={nodeRadiusScaleChanged}
                     />
                     <div style={{
                         width: "100%",

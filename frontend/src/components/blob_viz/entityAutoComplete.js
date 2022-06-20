@@ -1,45 +1,44 @@
 import React from 'react';
 import { DragDropContext } from "react-beautiful-dnd";
 import Column from "./Column";
+    
 
-const EntityAutoComplete = ({ fromEntityAutoComplete, apiUrl, initialNodes, suggestionNodes = [{
-        "id": "go:GO:0006954",
-        "label": "inflammation",
-        "category": 3
-    }] }) => {
+const EntityAutoComplete = ({ updateSelectedNode, apiUrl, initialPinnedNodes }) => {
 
-    const dummyData = {
-        tasks: [...initialNodes, ...suggestionNodes],
+    const [dataState, setDataState] = React.useState({
+        tasks: initialPinnedNodes.map(node => ({
+            "id": { "text": node.id, "matched": "false" },
+            "desc": { "text": node.label, "matched": "true" },
+            "synonyms": []
+        })),
         columns: {
             'column-1': {
                 id: 'column-1',
                 title: 'Search Result',
-                taskIds: suggestionNodes.map(d => d.id),
+                taskIds: [],
             },
             'column-2': {
                 id: 'column-2',
                 title: 'Pinned',
-                taskIds: initialNodes.map(d => d.id),
+                taskIds: [initialPinnedNodes.map(node => node.id)],
             }
         },
         columnOrder: ['column-1', 'column-2']
-    };
-
-    const [dataState, setDataState] = React.useState(dummyData);
+    });
 
     const handleChange = (event) => {
         if (event.target.value.length === 0) return;
 
         fetch(`${apiUrl}/searchnode/${event.target.value}/5`).then(response => response.json()).then(suggestions => {
             suggestions = suggestions['matches'];
-            const tasksList = dataState.columns["column-2"].taskIds.map(taskId => dataState.tasks.find(task => task.id === taskId));
+            const tasksList = dataState.columns["column-2"].taskIds.map(taskId => dataState.tasks.find(task => task.text.id === taskId));
             const allTasks = tasksList.concat(suggestions);
 
             const newState = {
                 ...dataState,
                 tasks: allTasks,
             }
-            newState.columns["column-1"].taskIds = suggestions.map(task => task.id);
+            newState.columns["column-1"].taskIds = suggestions.map(task => task.id.text);
             setDataState(newState);
         });
     }
@@ -94,13 +93,9 @@ const EntityAutoComplete = ({ fromEntityAutoComplete, apiUrl, initialNodes, sugg
         setDataState(newState);
     }
 
-    const col2TaskIds = dataState.columns['column-2'].taskIds;
-
     React.useEffect(() => {
-        const nodeList = col2TaskIds;
-        fromEntityAutoComplete(nodeList);
-
-    }, [col2TaskIds, fromEntityAutoComplete, dataState]);
+        updateSelectedNode(dataState.columns['column-2'].taskIds);
+    }, [dataState]);
 
     return <div>
         <div className="form-floating mb-3">
@@ -113,7 +108,7 @@ const EntityAutoComplete = ({ fromEntityAutoComplete, apiUrl, initialNodes, sugg
         >
             {dataState.columnOrder.map(columnId => {
                 const column = dataState.columns[columnId];
-                const tasks = column.taskIds.map(taskId => dataState.tasks.find(task => task.id === taskId));
+                const tasks = column.taskIds.map(taskId => dataState.tasks.find(task => task.id.text === taskId)).filter(task => task);
                 return <Column key={column.id} column={column} tasks={tasks} />
             })}
         </DragDropContext>
