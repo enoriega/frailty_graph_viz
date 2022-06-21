@@ -17,7 +17,7 @@ const TaskList = styled.div`
 `;
 
 
-const Column = ({column, tasks}) => {
+const Column = ({column, tasks, searchText }) => {
     return (
         <Container>
             <Title>{column.title}</Title>
@@ -27,7 +27,7 @@ const Column = ({column, tasks}) => {
                         ref={provided.innerRef}
                         {...provided.droppableProps}
                     >
-                        {tasks.map((task, index) => <Task key={task.id.text} task={task} index={index} />)}
+                        {tasks.map((task, index) => <Task key={task.id.text} searchText={searchText} task={task} index={index} />)}
                         {provided.placeholder}
                     </TaskList>
 

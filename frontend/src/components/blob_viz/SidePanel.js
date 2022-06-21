@@ -3,7 +3,7 @@ import EntityAutoComplete from "./entityAutoComplete";
 import { useState } from "react";
 import "../styles/SidePanel.scss";
 
-function SidePanel({ currentView, simulation, maxLinkDist, apiUrl, updateSelectedNode, initialPinnedNodes, nodeRadiusScaleChanged, forceProperties, updateForces, onChangeCategoryDetails }) {
+function SidePanel({ currentView, simulation, maxLinkDist, apiUrls, updateSelectedNode, initialPinnedNodes, nodeRadiusScaleChanged, forceProperties, updateForces, onChangeCategoryDetails }) {
     const [entityOpen, setEntityOpen] = useState(false);
     const [visualOpen, setVisualOpen] = useState(false);
     const [graphParamsOpen, setGraphParamsOpen] = useState(false);
@@ -38,7 +38,7 @@ function SidePanel({ currentView, simulation, maxLinkDist, apiUrl, updateSelecte
                         <li>
                             <EntityAutoComplete
                                 updateSelectedNode={updateSelectedNode}
-                                apiUrl={apiUrl}
+                                apiUrls={apiUrls}
                                 initialPinnedNodes={initialPinnedNodes}
                             />
                         </li>

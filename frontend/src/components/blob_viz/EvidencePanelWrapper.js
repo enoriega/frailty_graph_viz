@@ -3,7 +3,7 @@ import React from 'react';
 import { Button, Spinner } from "react-bootstrap";
 import { fetchEvidence } from "../../utils/api";
 
-const EvidencePanelWrapper = ({ apiUrl, onDataChange=null }) => {
+const EvidencePanelWrapper = ({ apiUrls, onDataChange=null }) => {
 	const [isLoading, setIsLoading] = React.useState(false);
     const [isEvidenceOpen, setIsEvidenceOpen] = React.useState(false);
     const [evidenceItems, setEvidenceItems] = React.useState([]);
@@ -12,7 +12,7 @@ const EvidencePanelWrapper = ({ apiUrl, onDataChange=null }) => {
     const dataUpdated = (newData) => {
         setIsLoading(true);
         // newData: {source, target, polarity}
-        fetchEvidence(apiUrl, newData.source, newData.target, newData.polarity)
+        fetchEvidence(apiUrls.general, newData.source, newData.target, newData.polarity)
             .then(evidence => {
                 evidence.forEach(ev => {
                     ev.impact = parseFloat(ev.impact)
@@ -36,7 +36,7 @@ const EvidencePanelWrapper = ({ apiUrl, onDataChange=null }) => {
         {isLoading && <Spinner animation="border" variant="danger" className='loading'/>}
         {isEvidenceOpen &&
             <EvidencePanel
-                apiUrl={apiUrl}
+                apiUrl={apiUrls.general}
                 items={evidenceItems} header={
                     <h3 ref={evidenceRef}>Evidence:
                         {' '} <Button variant="secondary" size="sm" onClick={() => { setIsEvidenceOpen(false); }}>Close</Button>

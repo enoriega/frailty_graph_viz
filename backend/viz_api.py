@@ -164,7 +164,7 @@ async def get_best_subgraph(nodes: NodesList, category_count: CategoryCount,
                     neighbor['total_search_freq'] = neighbor['freq']
                     search_space.append(neighbor)
 
-        catFinalList[cat_id] = sorted(search_space, key=lambda x: x['total_search_freq'], reverse=True)[:cat_count]
+        catFinalList[cat_id] = sorted(search_space, key=lambda x: x['total_search_freq'], reverse=True)[:cat_count - len(finalList)] + finalList
 
     finalNodes = []
     for v in catFinalList.values():

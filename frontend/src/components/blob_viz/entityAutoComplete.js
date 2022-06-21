@@ -3,73 +3,71 @@ import { DragDropContext } from "react-beautiful-dnd";
 import Column from "./Column";
     
 
-const EntityAutoComplete = ({ updateSelectedNode, apiUrl, initialPinnedNodes }) => {
+const EntityAutoComplete = ({ updateSelectedNode, apiUrls, initialPinnedNodes }) => {
 
     const [dataState, setDataState] = React.useState({
         tasks: initialPinnedNodes.map(node => ({
-            "id": { "text": node.id, "matched": "false" },
-            "desc": { "text": node.label, "matched": "true" },
-            "synonyms": []
+            id: { text: node.id, matched: false },
+            desc: { text: node.label, matched: true },
+            synonyms: [],
+            category: node.category
         })),
         columns: {
-            'column-1': {
-                id: 'column-1',
+            searchCol: {
+                id: 'searchCol',
                 title: 'Search Result',
-                taskIds: [],
+                taskIds: []
             },
-            'column-2': {
-                id: 'column-2',
+            pinCol: {
+                id: 'pinCol',
                 title: 'Pinned',
-                taskIds: [initialPinnedNodes.map(node => node.id)],
+                taskIds: initialPinnedNodes.map(node => node.id)
             }
-        },
-        columnOrder: ['column-1', 'column-2']
+        }
     });
 
+    const columnOrder = ['searchCol', 'pinCol'];
+    const [searchValue, setSearchValue] = React.useState('');
+
     const handleChange = (event) => {
-        if (event.target.value.length === 0) return;
+        const value = event.target.value;
+        setSearchValue(value);
 
-        fetch(`${apiUrl}/searchnode/${event.target.value}/5`).then(response => response.json()).then(suggestions => {
-            suggestions = suggestions['matches'];
-            const tasksList = dataState.columns["column-2"].taskIds.map(taskId => dataState.tasks.find(task => task.text.id === taskId));
-            const allTasks = tasksList.concat(suggestions);
+        if (event.target.value.length <= 2) return;
 
-            const newState = {
-                ...dataState,
-                tasks: allTasks,
-            }
-            newState.columns["column-1"].taskIds = suggestions.map(task => task.id.text);
-            setDataState(newState);
+        const pinColTasks = dataState.tasks.filter(task => dataState.columns['pinCol'].taskIds.includes(task.id.text));
+
+        fetch(`${apiUrls.general}/search_entity/${value}`).then(response => response.json()).then(result => {
+            result = result.slice(0, 6)
+
+            const suggestions = result.filter(entity => !dataState.columns['pinCol'].taskIds.includes(entity.id.text));
+
+            setDataState({
+                tasks: [
+                    ...pinColTasks,
+                    ...suggestions
+                ],
+                columns: {
+                    pinCol: dataState.columns['pinCol'],
+                    searchCol: {
+                        id: 'searchCol',
+                        title: 'Search Result',
+                        taskIds: suggestions.map(entity => entity.id.text)
+                    }
+                }
+            })
         });
     }
 
     const onDragEnd = result => {
         const {destination, source, draggableId } = result;
         if (!destination) return;
-        if (destination.droppableId === source.droppableId && destination.index === source.index) return;
+        if (destination.droppableId === source.droppableId) return;
 
         const start = dataState.columns[source.droppableId];
         const finish = dataState.columns[destination.droppableId];
+        if (start === finish) return;
 
-        if (start === finish) {
-            const newTaskIds = Array.from(start.taskIds);
-            newTaskIds.splice(source.index, 1);
-            newTaskIds.splice(destination.index, 0, draggableId);
-
-            const newColumn = {
-                ...start,
-                taskIds: newTaskIds
-            }
-            const newState = {
-                ...dataState,
-                columns: {
-                    ...dataState.columns,
-                    [newColumn.id]: newColumn,
-                },
-            }
-            setDataState(newState);
-            return;
-        }
         const startTaskIds = Array.from(start.taskIds);
         startTaskIds.splice(source.index, 1);
         const newStart = {
@@ -82,34 +80,32 @@ const EntityAutoComplete = ({ updateSelectedNode, apiUrl, initialPinnedNodes }) 
             ...finish,
             taskIds: finishTaskIds,
         }
-        const newState = {
+
+        setDataState({
             ...dataState,
             columns: {
                 ...dataState.columns,
                 [newStart.id]: newStart,
                 [newFinish.id]: newFinish,
             }
-        };
-        setDataState(newState);
-    }
+        })
 
-    React.useEffect(() => {
-        updateSelectedNode(dataState.columns['column-2'].taskIds);
-    }, [dataState]);
+        updateSelectedNode(newFinish.taskIds);
+    }
 
     return <div>
         <div className="form-floating mb-3">
-            <input type="search" className="form-control" id="entity_name" placeholder="Interleukin-6" aria-label="Enter Name or ID of entity" onChange={handleChange} />
+            <input type="search" className="form-control" id="entity_name" aria-label="Enter Name or ID of entity" onChange={handleChange} value={searchValue} />
             <label htmlFor="entity_name">Search for Entity</label>
         </div>
 
         <DragDropContext
             onDragEnd={onDragEnd}
         >
-            {dataState.columnOrder.map(columnId => {
+            {columnOrder.map(columnId => {
                 const column = dataState.columns[columnId];
-                const tasks = column.taskIds.map(taskId => dataState.tasks.find(task => task.id.text === taskId)).filter(task => task);
-                return <Column key={column.id} column={column} tasks={tasks} />
+                const myTasks = column.taskIds.map(taskId => dataState.tasks.find(task => task.id.text === taskId));
+                return <Column key={column.id} column={column} tasks={myTasks} searchText={searchValue} />;
             })}
         </DragDropContext>
     </div>

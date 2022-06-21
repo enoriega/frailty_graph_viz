@@ -76,7 +76,7 @@ ReactDOM.render(
 				}/>
 				<Route path="blob-viz-il6" element={
 					<>
-						<MainGraph key="MainGraphIL6" vizApiUrl={vizApiUrl} apiUrl={apiUrl} defaultEntities={{
+						<MainGraph key="MainGraphIL6" apiUrls={{viz: vizApiUrl, general: apiUrl}} defaultEntities={{
 							nodes: {
 								nodes: ["uniprot:P05231"],
 								labels: ["Interleukin-6"],
@@ -88,7 +88,7 @@ ReactDOM.render(
 				} />
 				<Route path="blob-viz-tnf-fat" element={
 					<>
-						<MainGraph key="MainGraphTNFFAT" vizApiUrl={vizApiUrl} apiUrl={apiUrl} defaultEntities={{
+						<MainGraph key="MainGraphTNFFAT" apiUrls={{viz: vizApiUrl, general: apiUrl}} defaultEntities={{
 							nodes: {
 								nodes: ["uniprot:P01375", "cl:CL:0000136", "uberon:UBERON:0001013"],
 								labels: ["TNF", "Adipocytes",  "Adipose Tissue"],

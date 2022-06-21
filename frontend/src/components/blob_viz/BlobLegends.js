@@ -27,7 +27,6 @@ const BlobLegends = ({ onChangeNodeRadiusScale, onChangeRelationviewShow, onChan
     }
 
     onChangeNodeRadiusScale((newNodeRadiusScale, scale) => {
-        console.log("Called node radius change");
         setNodeRadiusScaleVals({
             minVal: newNodeRadiusScale.domain()[0],
             maxVal: newNodeRadiusScale.domain()[1],

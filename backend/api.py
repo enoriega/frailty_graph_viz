@@ -15,6 +15,7 @@ from .config import Settings
 from .sql_app import schemas, crud
 from .sql_app.schemas import RecordCreate, RecordMetadataCreate
 import itertools as it
+from .viz_api import get_category_number_from_id
 
 from .dependencies import get_db, get_evidence, get_entities, get_structured_entities, get_commit_hash, get_graph_hash, \
     get_rankings_hash, get_cli_args, get_graph, get_frequencies, get_es_client, get_significance, get_synonyms, \
@@ -268,7 +269,8 @@ async def search_entity(query:str,
                     "desc": {"text":label, "matched":query in label},
                     "synonyms": [
                         {"text":s, "matched":query in s} for s in syns if s != label
-                    ]
+                    ],
+                    "category": get_category_number_from_id(m_id)
                 }
             )
 

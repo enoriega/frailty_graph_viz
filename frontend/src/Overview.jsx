@@ -6,6 +6,7 @@ import { getEntityCategory, groupBy } from './utils/utils';
 import {Container, Row, Col, Form, Spinner, Dropdown} from 'react-bootstrap'
 import WeightPanel from './components/weight/WeightPanel';
 import {Typeahead, Highlighter, Token} from 'react-bootstrap-typeahead';
+import EntitySearchResultItem from './EntitySearchResultItem';
 
 function filterItems(items, shouldContain){
 	if(shouldContain){
@@ -88,23 +89,7 @@ function EntityTypeahead({ items, onInputChange, onChange }){
             renderMenuItemChildren={
               (option, { text }, index) => {
 
-				  let synonyms = option.synonyms.map(s => s.text).join(', ')
-                return <>
-                  <Highlighter search={text}>
-                    {option.desc.text}
-                  </Highlighter>
-                  <div>
-                    <small>
-                      ID: <Highlighter search={text}>
-                        {`${option.id.text}`}
-                      </Highlighter>
-                        <br />
-						Synonyms: <Highlighter search={text}>{synonyms}</Highlighter>
-						<br />
-                        {/*{option.type}*/}
-                    </small>
-                  </div>
-                </>
+                return <EntitySearchResultItem searchText={text} option={option} />
               }
             }
         />

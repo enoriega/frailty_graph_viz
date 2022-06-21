@@ -1,7 +1,7 @@
 import React from 'react';
 import * as d3 from "d3";
 
-const NodeDetail = ({ apiUrl, onNodeDetailChange, height, onCategoryCountChange }) => {
+const NodeDetail = ({ apiUrls, onNodeDetailChange, height, onCategoryCountChange }) => {
     const [synonyms, setSynonyms] = React.useState([]);
     const [currentDetailNode, setCurrentDetailNode] = React.useState({
         "id": "uniprot:P05231",
@@ -9,7 +9,7 @@ const NodeDetail = ({ apiUrl, onNodeDetailChange, height, onCategoryCountChange 
         "category": 1
     });
     onNodeDetailChange(async (d) => {
-        const synRes = await fetch(`${apiUrl}/synonyms/${d.id}`);
+        const synRes = await fetch(`${apiUrls.general}/synonyms/${d.id}`);
         const synonyms = await synRes.json();
         setSynonyms(synonyms);
         setCurrentDetailNode(d);

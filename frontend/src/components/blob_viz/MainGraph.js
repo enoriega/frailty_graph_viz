@@ -114,7 +114,7 @@ const updateForces = ({ simulation, maxLinkDist, categoriesDetailsLength, restar
 }
 
 
-const MainGraph = ({ vizApiUrl, apiUrl, defaultEntities }) => {
+const MainGraph = ({ apiUrls, defaultEntities }) => {
     const categoryCount = {};
     if("category_count" in defaultEntities) {
         categoryCount["category_count"] = {
@@ -147,7 +147,10 @@ const MainGraph = ({ vizApiUrl, apiUrl, defaultEntities }) => {
     const svgRef = React.useRef();
     let maxLinkDist = 100;
 
-    let selectedNode = defaultEntities;
+    let selectedNode = {
+        category_count: defaultEntities.category_count,
+        nodes: { nodes: defaultEntities.nodes.nodes }
+    };
     const setSelectedNode = (d) => {
         selectedNode = d;
         d3UpdateFunc();
@@ -155,7 +158,7 @@ const MainGraph = ({ vizApiUrl, apiUrl, defaultEntities }) => {
     const updateSelectedNode = (d) => {
         setSelectedNode({
             ...selectedNode,
-            nodes: { nodes: d[0] }
+            nodes: { nodes: d }
         });
     };
 
@@ -212,7 +215,7 @@ const MainGraph = ({ vizApiUrl, apiUrl, defaultEntities }) => {
 
     const weightUpdated = async () => {
         if (Object.keys(nodeWeightParams).length === 0) return;
-        const nodeWeightsResponse = await fetch(`${vizApiUrl}/noderadius`, {
+        const nodeWeightsResponse = await fetch(`${apiUrls.viz}/noderadius`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -351,18 +354,18 @@ const MainGraph = ({ vizApiUrl, apiUrl, defaultEntities }) => {
             return;
         }
 
-
         const svgRoot = d3.select(svgRef.current);
         const svg = d3.select(svgRef.current).select("g.everything");
         const svgHullGroup = svg.select('g.hullgroup');
         const svgLinkGroup = svg.select('g.linkgroup');
         const svgNodeGroup = svg.select('g.nodegroup');
 
+
         height = Math.max(parseInt(svgRoot.style("height")), minHeight);
         width = Math.max(parseInt(svgRoot.style("width")), minWidth);
         forceProperties.separation.radius = forceProperties.separation.radiusFunc(width, height);
 
-        const categoriesDetailsResponse = await fetch(`${vizApiUrl}/categories`)
+        const categoriesDetailsResponse = await fetch(`${apiUrls.viz}/categories`)
         const categoriesDetails = await categoriesDetailsResponse.json();
 
         const BlobLegendsColors = Object.entries(categoriesDetails).map(([k, v]) => ({
@@ -391,7 +394,7 @@ const MainGraph = ({ vizApiUrl, apiUrl, defaultEntities }) => {
             .append('path')
             .attr('class', d => 'hull_' + (d.category));
 
-        const newSubgraphResponse = await fetch(`${vizApiUrl}/getbestsubgraph`, {
+        const newSubgraphResponse = await fetch(`${apiUrls.viz}/getbestsubgraph`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -712,7 +715,7 @@ const MainGraph = ({ vizApiUrl, apiUrl, defaultEntities }) => {
             setShowRelationViewLegends(true);
 
             const transitionSpeed = 750;
-            const depGraphResponse = await fetch(`${apiUrl}/interaction/${node1}/${node2}/true`);
+            const depGraphResponse = await fetch(`${apiUrls.viz}/interaction/${node1}/${node2}/true`);
             const depGraph = processCytoscapeGraph(await depGraphResponse.json());
             
             const relationalNodeSepDist = 800;
@@ -960,6 +963,8 @@ const MainGraph = ({ vizApiUrl, apiUrl, defaultEntities }) => {
         d3UpdateFunc();
     }));
 
+    React.useEffect(d3UpdateFunc);
+
     return (
         <>
             <div style={{
@@ -977,7 +982,7 @@ const MainGraph = ({ vizApiUrl, apiUrl, defaultEntities }) => {
                     flexDirection: "row",
                 }}>
                     <SidePanel
-                        apiUrl={vizApiUrl}
+                        apiUrls={apiUrls}
 
                         currentView={{view: "root"}}
 
@@ -1023,14 +1028,6 @@ const MainGraph = ({ vizApiUrl, apiUrl, defaultEntities }) => {
                                         <g className="linkgroup"></g>
                                         <g className="nodegroup"></g>
                                     </g>
-                                    {/* <g className="legendgroup" style={{
-                                        outline: "1px solid black",
-                                        outlineOffset: "10px"
-                                    }}>
-                                        <g className="categorylegends" transform={`translate(${width - 200},25)`}></g>
-                                        <g className="sizelegends" transform={`translate(${width - 200},160)`}></g>
-                                        <g className="relationlegends" transform={`translate(${width-200},500)`}></g>
-                                    </g> */}
                                     <g className="ui">
                                         <g transform="scale(0.4, 0.4),translate(100, 100)" className="backbtn" style={{
                                             position: "absolute"
@@ -1061,14 +1058,14 @@ const MainGraph = ({ vizApiUrl, apiUrl, defaultEntities }) => {
                                     onChangeCategoryCount={(dataFromChild) => {setBlobLegendsColors = dataFromChild; }}
                                 />
                                 <NodeDetail
-                                    apiUrl={apiUrl}
+                                    apiUrls={apiUrls}
                                     onNodeDetailChange={(dataFromChild) => { setDetailNodeLegend = dataFromChild; }}
                                     height="40%"
                                     onCategoryCountChange={(dataFromChild) => {setNodeDetailColors = dataFromChild; }}
                                 />
                             </div>
                         </div>
-                        <EvidencePanelWrapper apiUrl={apiUrl} onDataChange={(dataFromChild) => { setEvidenceData = dataFromChild; }} />
+                        <EvidencePanelWrapper apiUrls={apiUrls} onDataChange={(dataFromChild) => { setEvidenceData = dataFromChild; }} />
                     </div>
                 </div>
             </div>
