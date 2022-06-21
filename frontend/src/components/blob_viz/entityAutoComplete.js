@@ -38,7 +38,12 @@ const EntityAutoComplete = ({ updateSelectedNode, apiUrls, initialPinnedNodes })
         const pinColTasks = dataState.tasks.filter(task => dataState.columns['pinCol'].taskIds.includes(task.id.text));
 
         fetch(`${apiUrls.general}/search_entity/${value}`).then(response => response.json()).then(result => {
-            result = result.slice(0, 6)
+            result = result.slice(0, 6);
+            // Make the ids upper case
+            result = result.map(entity => ({
+                ...entity,
+                id: { text: entity.id.text.split(":").map((s, ix) => (ix > 0) ? s.toUpperCase() : s).join(':'), match: entity.id.match }
+            }));
 
             const suggestions = result.filter(entity => !dataState.columns['pinCol'].taskIds.includes(entity.id.text));
 

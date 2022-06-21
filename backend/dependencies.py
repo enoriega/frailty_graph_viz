@@ -133,8 +133,7 @@ def get_entity_search_databases():
     inverted_entities = defaultdict(list)
     for n in graph.nodes:
         if 'label' in graph.nodes[n]:
-            # inverted_entities[graph.nodes[n]['label'].strip().lower()].append(n.strip().lower())
-            inverted_entities[graph.nodes[n]['label'].strip().lower()].append(n)
+            inverted_entities[graph.nodes[n]['label'].strip().lower()].append(n.strip().lower())
 
     # inverted_entities = {graph.nodes[n]['label'].lower():n.lower() for n in graph.nodes if 'label' in graph.nodes[n]}
 
