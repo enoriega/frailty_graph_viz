@@ -89,7 +89,7 @@ function EntityTypeahead({ items, onInputChange, onChange }){
             renderMenuItemChildren={
               (option, { text }, index) => {
 
-                return <EntitySearchResultItem searchText={text} option={option} />
+                return <EntitySearchResultItem searchText={text} option={option} showCategoryColor={false} />
               }
             }
         />

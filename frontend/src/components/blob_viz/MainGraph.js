@@ -715,7 +715,7 @@ const MainGraph = ({ apiUrls, defaultEntities }) => {
             setShowRelationViewLegends(true);
 
             const transitionSpeed = 750;
-            const depGraphResponse = await fetch(`${apiUrls.viz}/interaction/${node1}/${node2}/true`);
+            const depGraphResponse = await fetch(`${apiUrls.general}/interaction/${node1}/${node2}/true`);
             const depGraph = processCytoscapeGraph(await depGraphResponse.json());
             
             const relationalNodeSepDist = 800;
