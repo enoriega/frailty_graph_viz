@@ -1,7 +1,6 @@
 """ Starts the backend """
 
 import logging
-from argparse import ArgumentParser
 
 import uvicorn
 from fastapi import FastAPI

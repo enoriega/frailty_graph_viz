@@ -8,8 +8,8 @@ from networkx import MultiDiGraph
 from sqlalchemy.orm import Session
 
 from .utils import convert2cytoscapeJSON, get_global_edge_data
-from evidence_index import Evidence
-from evidence_index.client import EvidenceIndexClient
+from .evidence_index import Evidence
+from .evidence_index.client import EvidenceIndexClient
 from . import models as md, utils
 from .config import Settings
 from .sql_app import schemas, crud

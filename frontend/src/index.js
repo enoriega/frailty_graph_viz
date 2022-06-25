@@ -10,7 +10,7 @@ import EvidenceIndex from './EvidenceIndex';
 import Overview from './Overview';
 import NetworkViz from './NetworkViz';
 import ScrollToTop from './components/ScrollToTop';
-import config from "./config.json"
+import { getUrls } from "./config"
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'react-bootstrap-range-slider/dist/react-bootstrap-range-slider.css';
@@ -21,7 +21,7 @@ import MainGraph from "./components/blob_viz/MainGraph";
 // ========================================
 const rootElement = document.getElementById('root');
 
-const { apiUrl, vizApiUrl } = config
+const { apiUrl, vizApiUrl } = getUrls()
 console.log(apiUrl)
 
 let candidateOverviewEntities = [

@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "1601:1601"
+    command: uvicorn backend.start:app --host 0.0.0.0 --port 1601
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    environment:
+    - PORT=3000
+    - REACT_APP_BACKEND_PORT=1601
+    command: npm start

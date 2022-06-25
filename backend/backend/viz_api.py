@@ -8,7 +8,7 @@ import difflib
 import networkx as nx
 
 from networkx import MultiDiGraph, DiGraph
-from backend.utils import calculateWeight, convert2cytoscapeJSON, get_global_edge_data
+from .utils import calculateWeight, convert2cytoscapeJSON, get_global_edge_data
 import itertools
 
 # Data loading and preprocessing

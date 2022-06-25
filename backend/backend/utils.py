@@ -7,7 +7,7 @@ import subprocess
 from typing import List
 import math
 
-from backend.network import SignificanceRow
+from .network import SignificanceRow
 
 logger = logging.getLogger("frailty_viz_utils")
 

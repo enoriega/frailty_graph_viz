@@ -1,2 +1,3 @@
-#!/bin/bash
-PYTHONPATH=. python -m uvicorn "backend.start:app" --port  1601
+#!/bin/sh
+export $(cat ./backend/.env | xargs)
+PYTHONPATH=./backend uvicorn backend.start:app --host 0.0.0.0 --port 1601
