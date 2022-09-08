@@ -7,6 +7,11 @@ services:
       context: ./backend
     volumes:
       - ./data:/data
+    environment:
+      - GRAPH_FILE
+      - IMPACT_FACTORS
+      - RECORDS_DB
+      - ES_INDEX
     ports:
       - "${BACKEND_PORT}:${BACKEND_PORT}"
     command: uvicorn backend.start:app --host 0.0.0.0 --port ${BACKEND_PORT}
