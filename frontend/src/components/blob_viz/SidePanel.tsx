@@ -1,19 +1,20 @@
 import { Button, Collapse } from "react-bootstrap";
 import EntityAutoComplete from "./entityAutoComplete";
-import { useState } from "react";
+import React from "react";
 import "../styles/SidePanel.scss";
+import { selectVizControls, initCategories, setNodeRadiusScale } from '../../features/viz-controls/vizControls';
+import { useAppSelector, useAppDispatch } from '../../app/hooks';
 
-function SidePanel({ currentView, simulation, maxLinkDist, apiUrls, updateSelectedNode, initialPinnedNodes, nodeRadiusScaleChanged, forceProperties, updateForces, onChangeCategoryDetails }) {
-    const [entityOpen, setEntityOpen] = useState(false);
-    const [visualOpen, setVisualOpen] = useState(false);
-    const [graphParamsOpen, setGraphParamsOpen] = useState(false);
-    const [othersOpen, setOthersOpen] = useState(false);
-    const [categoryDetails, setCategoryDetails] = useState([]);
-    const categoriesDetailsLength = Object.keys(categoryDetails).length;
+function SidePanel() {
+    const [entityOpen, setEntityOpen] = React.useState(false);
+    const [visualOpen, setVisualOpen] = React.useState(false);
+    const [graphParamsOpen, setGraphParamsOpen] = React.useState(false);
+    // const [othersOpen, setOthersOpen] = useState(false);
 
-    onChangeCategoryDetails(setCategoryDetails);
-
-
+    // Redux states
+    const dispatch = useAppDispatch();
+    const vizControls = useAppSelector(selectVizControls)
+    const categoryDetails = vizControls.categoryDetails
 
     return <div className="rsection p-3 bg-white" style={{
         minWidth: "360px",
@@ -36,11 +37,11 @@ function SidePanel({ currentView, simulation, maxLinkDist, apiUrls, updateSelect
                 <Collapse in={entityOpen}>
                     <ul className="btn-toggle-nav list-unstyled fw-normal pb-1 small">
                         <li>
-                            <EntityAutoComplete
+                            {/* <EntityAutoComplete
                                 updateSelectedNode={updateSelectedNode}
                                 apiUrls={apiUrls}
                                 initialPinnedNodes={initialPinnedNodes}
-                            />
+                            /> */}
                         </li>
                         {categoryDetails.map(({id, color, encoding}, i) => <li key={encoding}>
                             <label htmlFor={"cluster"+(encoding)+"count"} className="form-label" style={{color: color}}>{id}</label>
@@ -94,32 +95,16 @@ function SidePanel({ currentView, simulation, maxLinkDist, apiUrls, updateSelect
                             <span><b>Node Radius Scale</b></span><br/>
                             <div className="form-check form-switch m-3">
                                 <input type="checkbox" className="form-check-input" id="noderadiuslog" defaultChecked={false} onChange={e => {
-                                    if(currentView.view !== "root") return;
+                                    if(vizControls.currentView !== "root") return;
                                     if(e.target.checked) {
-                                        nodeRadiusScaleChanged('log');
+                                        dispatch(setNodeRadiusScale("logarithmic"))
                                     }
                                     else {
-                                        nodeRadiusScaleChanged('linear');
+                                        dispatch(setNodeRadiusScale('linear'))
                                     }
                                 }} />
                                 <label className="form-check-label" htmlFor="noderadiuslog">Logarithmic</label>
                             </div>
-                        </li>
-                        <li>
-                            <label htmlFor="graphparamsepfactor" className="form-label">Separation Factor</label>
-                            <input type="range" className="form-range" min="0" max="1" step="0.01" id="graphparamsepfactor" defaultValue="0.1" onChange={e => {
-                                if(currentView.view !== "root") return;
-                                forceProperties.separation.strength = parseFloat(e.target.value);
-                                updateForces({ simulation, maxLinkDist, categoriesDetailsLength, restart:true });
-                            }} />
-                        </li>
-                        <li>
-                            <label htmlFor="linkstrength" className="form-label">Link Strength</label>
-                            <input type="range" className="form-range" min="0" max="1" step="0.01" id="linkstrength" defaultValue="0.9" onChange={e => {
-                                if(currentView.view !== "root") return;
-                                forceProperties.link.strength = parseFloat(e.target.value);
-                                updateForces({ simulation, maxLinkDist, categoriesDetailsLength, restart:true });
-                            }} />
                         </li>
                     </ul>
                 </Collapse>

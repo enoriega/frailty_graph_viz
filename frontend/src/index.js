@@ -4,7 +4,7 @@ import {
 	BrowserRouter,
 	Routes,
 	Route
-  } from "react-router-dom"
+} from "react-router-dom"
 import App from './App';
 import EvidenceIndex from './EvidenceIndex';
 import Overview from './Overview';
@@ -16,8 +16,10 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'react-bootstrap-range-slider/dist/react-bootstrap-range-slider.css';
 import StructuredSearch from "./StructuredSearch";
 import MainGraph from "./components/blob_viz/MainGraph";
+import { Provider } from 'react-redux';
+import { store } from './app/store';
 
-  
+
 // ========================================
 const rootElement = document.getElementById('root');
 
@@ -41,40 +43,41 @@ let candidateOverviewEntities = [
 ]
 
 ReactDOM.render(
-	<BrowserRouter>
-		<Routes>
-			<Route path="/" element={<App />}>
-				<Route index element={
-					<>
-						<Overview 
-							apiUrl={ apiUrl }
-							// entityId="uniprot:P05231"
-							// entityName="IL-6"
-							entityChoices={candidateOverviewEntities}
-						/>
-						
-						<ScrollToTop />
-					</>}
-				/>
-				<Route path="viz" element={
-					<>
-						<NetworkViz
-							apiUrl={ apiUrl } />
-						<ScrollToTop />
-					</>} />
-				<Route path="evidence-index" element={
-					<>
-						<EvidenceIndex apiUrl={ apiUrl } defaultResults={ 100 } />
-						<ScrollToTop />
-					</>
-				} />
-				<Route path="structured-search" element={
-					<>
-						<StructuredSearch apiUrl={ apiUrl } />
-						<ScrollToTop />
-					</>
-				}/>
-				<Route path="blob-viz-il6" element={
+	<Provider store={store}>
+		<BrowserRouter>
+			<Routes>
+				<Route path="/" element={<App />}>
+					<Route index element={
+						<>
+							<Overview
+								apiUrl={apiUrl}
+								// entityId="uniprot:P05231"
+								// entityName="IL-6"
+								entityChoices={candidateOverviewEntities}
+							/>
+
+							<ScrollToTop />
+						</>}
+					/>
+					<Route path="viz" element={
+						<>
+							<NetworkViz
+								apiUrl={apiUrl} />
+							<ScrollToTop />
+						</>} />
+					<Route path="evidence-index" element={
+						<>
+							<EvidenceIndex apiUrl={apiUrl} defaultResults={100} />
+							<ScrollToTop />
+						</>
+					} />
+					<Route path="structured-search" element={
+						<>
+							<StructuredSearch apiUrl={apiUrl} />
+							<ScrollToTop />
+						</>
+					} />
+					{/* <Route path="blob-viz-il6" element={
 					<>
 						<MainGraph key="MainGraphIL6" apiUrls={{viz: vizApiUrl, general: apiUrl}} defaultEntities={{
 							nodes: {
@@ -97,19 +100,26 @@ ReactDOM.render(
 						}} />
 						<ScrollToTop />
 					</>
-				} />
+				} /> */}
+					<Route path="blob-viz-il6" element={
+						<>
+							<MainGraph />
+							<ScrollToTop />
+						</>
+					} />
 
-				<Route
-					path="*"
-					element={
-						<main style={{ padding: "1rem" }}>
-						<p>There's nothing here!</p>
-						</main>
-					}
-				/>
-			</Route>
-		</Routes>
-	</BrowserRouter>,
+					<Route
+						path="*"
+						element={
+							<main style={{ padding: "1rem" }}>
+								<p>There's nothing here!</p>
+							</main>
+						}
+					/>
+				</Route>
+			</Routes>
+		</BrowserRouter>
+	</Provider>
+	,
 	rootElement
 );
-  

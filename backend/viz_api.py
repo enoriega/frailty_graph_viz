@@ -105,7 +105,7 @@ api_router = APIRouter(prefix="/viz_api")
 
 @api_router.get("/categories")
 async def categories_details():
-    return category_encoding
+    return [v for k,v in sorted(category_encoding.items(), key=lambda x: x[0])]
 
 # Endpoints of the blob viz api
 @api_router.post('/getbestsubgraph')

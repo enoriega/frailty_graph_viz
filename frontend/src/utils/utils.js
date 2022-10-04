@@ -1,4 +1,4 @@
-import Color from 'color';
+import React from 'react'
 
 export function groupBy(arr, criteria) {
     return arr.reduce(function (acc, currentValue) {
@@ -157,6 +157,41 @@ export function createArc(x1,y1,x2,y2) {
     A 100 100 0 0 0 ${x2} ${y2}
     `
 }
+
+// UseEffect debugger
+const usePrevious = (value, initialValue) => {
+  const ref = React.useRef(initialValue);
+  React.useEffect(() => {
+    ref.current = value;
+  });
+  return ref.current;
+};
+
+export const useEffectDebugger = (effectHook, dependencies, dependencyNames = []) => {
+  const previousDeps = usePrevious(dependencies, []);
+
+  const changedDeps = dependencies.reduce((accum, dependency, index) => {
+    if (dependency !== previousDeps[index]) {
+      const keyName = dependencyNames[index] || index;
+      return {
+        ...accum,
+        [keyName]: {
+          before: previousDeps[index],
+          after: dependency
+        }
+      };
+    }
+
+    return accum;
+  }, {});
+
+  if (Object.keys(changedDeps).length) {
+    console.log('[use-effect-debugger] ', changedDeps);
+  }
+
+  React.useEffect(effectHook, dependencies);
+};
+
 export function createLine(x1,y1,x2,y2) {
     return `
     M ${x1} ${y1}
