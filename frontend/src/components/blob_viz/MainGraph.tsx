@@ -4,7 +4,7 @@ import { sankey, sankeyLinkHorizontal } from "d3-sankey";
 import WeightPanel from '../weight/WeightPanel';
 import SidePanel from "./SidePanel";
 import EvidencePanelWrapper from './EvidencePanelWrapper';
-import { idToClass, calculateCategoryCenters, calculateCategoryCentersEllipse, normalizeDistance, categoryNodeColors, useEffectDebugger } from '../../utils/utils';
+import { idToClass, calculateCategoryCenters, calculateCategoryCentersEllipse, normalizeDistance, useEffectDebugger } from '../../utils/utils';
 import BlobLegends from './BlobLegends';
 import NodeDetail from './NodeDetail';
 import { getBestSubgraph, getNodeWeights } from '../../utils/vizapi';
@@ -13,7 +13,31 @@ import { initCategories, selectVizControls, setNodeIds } from '../../features/vi
 import { selectWeights } from '../../features/weights/weights';
 import { useAppSelector, useAppDispatch } from '../../app/hooks';
 import Color from 'color';
+import { sort } from 'd3';
 
+export const categoryNodeColors = [
+    Color("#411c58"),
+    Color("#00308e"),
+    Color("#8a2a44"),
+    Color("#10712b"),
+    // https://coolors.co/4e7e72-fe9c9a-c1aa85-848a9a
+    Color("#1f332e"),
+    Color("#fd2521"),
+    Color("#886e44"),
+    Color("#494e5a"),
+]
+
+export const categoryHullColors = {
+    1: "#d282be",
+    2: "#a6d9ef",
+    3: "#ffa770",
+    4: "#e5f684",
+    // https://coolors.co/4e7e72-fe9c9a-c1aa85-848a9a
+    5: "#4e7e72",
+    6: "#fe9c9a",
+    7: "#c1aa85",
+    8: "#848a9a",
+}
 
 const ASPECT_RATIO = 16/9;
 const minHeight = 300;
@@ -47,65 +71,69 @@ function MainGraph() {
         links: []
     });
 
+    const [nodeWeights, setNodeWeights] = React.useState<{[nodeId: string]: number}>({})
+
     const [nodeCenters, setNodeCenters] = React.useState<[number,number][]>([])
-    const svgRoot = React.useRef<SVGSVGElement>(null)
-
     const [hoveredNode, setHoveredNode] = React.useState<Node|null>(null)
-
 
     // Redux states
     const dispatch = useAppDispatch();
     const vizControls = useAppSelector(selectVizControls)
     const weights = useAppSelector(selectWeights)
 
+    const [svgHeight, setSvgHeight] = React.useState(-1)
+    const [svgWidth, setSvgWidth] = React.useState(-1)
+
+    const svgRoot = React.useCallback((node: SVGSVGElement) => {
+        if(!node) return
+        setSvgHeight(node.getBoundingClientRect().height)
+        setSvgWidth(node.getBoundingClientRect().width)
+    }, [setSvgWidth, setSvgHeight])
+
+    const [nodeWeightDomain, setNodeWeightDomain] = React.useState<[number,number]>([0,1])
+
     const nodeRadiusScale = {
-        'linear': d3.scaleLinear().range([1,30]),
-        'logarithmic': d3.scaleLog().range([1,30]),
+        'linear': d3.scaleLinear().range([1,30]).domain(nodeWeightDomain),
+        'logarithmic': d3.scaleLog().range([1,30]).domain(nodeWeightDomain),
     }
 
     React.useEffect(() => {
         if(vizControls.categoryDetails.length === 0) {
-            console.log("getting categorydetails")
             dispatch(initCategories())
-            dispatch(setNodeIds(vizControls.nodeIds))
         }
-        if(vizControls.categoryDetails.length !== 0) {
-            console.log("getting subgraph details")
+        else {
             getBestSubgraph(vizControls.nodeIds, vizControls.categoryCounts).then(setSubgraph)
         }
+    }, [vizControls.categoryDetails.length])
+
+
+    React.useEffect(() => {
+        if(vizControls.categoryDetails.length === 0) return
+        getBestSubgraph(vizControls.nodeIds, vizControls.categoryCounts).then(setSubgraph)
     }, [vizControls.nodeIds])
 
 
     React.useEffect(() => {
-        getBestSubgraph(vizControls.nodeIds, vizControls.categoryCounts).then(newSubgraph => {
-            setSubgraph(newSubgraph)
-        })
-    }, [vizControls.nodeIds, vizControls.categoryCounts])
-
-
-    React.useEffect(() => {
-        console.log("getting Node weights")
+        if(vizControls.categoryDetails.length === 0
+            || vizControls.nodeIds.length === 0
+            || subgraph.nodes.length === 0
+        ) return
         getNodeWeights(subgraph.nodes.map(d=>d.id), weights).then(nodeWeights => {
             const nodeWeightMin = Math.min(...Object.values(nodeWeights));
             const nodeWeightMax = Math.max(...Object.values(nodeWeights));
-            nodeRadiusScale[vizControls.nodeRadiusScale].domain([nodeWeightMin, nodeWeightMax]);
+            setNodeWeightDomain([nodeWeightMin, nodeWeightMax])
+            const nodes = structuredClone(subgraph.nodes)
+            nodes.sort((a,b) => nodeWeights[b.id] - nodeWeights[a.id])
+            setSubgraph({ ...subgraph, nodes })
+            setNodeWeights(nodeWeights)
 
             // TODO: Set legend for nodeRadiusScale
-
-            const nodes = structuredClone(subgraph.nodes)
-            for (let i = 0; i < subgraph.nodes.length; i++) {
-                nodes[i].weight = +nodeWeights[subgraph.nodes[i].id];
-            }
-            setSubgraph({
-                ...subgraph,
-                nodes: nodes,
-            })
 
             // Put this in useLayoutEffect later
             // d3.select("g.nodegroup").selectAll<SVGCircleElement, Node>("circle")
             //     .attr('r', d => nodeRadiusScale[vizControls.nodeRadiusScale](d.weight_radius));
         })
-    }, [vizControls.nodeIds, weights])
+    }, [subgraph.nodes, weights])
 
     // Main drawing
     React.useEffect(() => {
@@ -114,41 +142,39 @@ function MainGraph() {
             || subgraph.nodes.length === 0
             || Object.keys(vizControls.categoryCounts).length === 0
             || Object.keys(vizControls.categoryDetails).length === 0
-            || !svgRoot.current
+            || svgHeight === -1
+            || svgWidth === -1
         ) return
-        const height = Math.max(svgRoot.current.clientHeight, minHeight);
-        const width = Math.max(svgRoot.current.clientWidth, minWidth);
 
         const categoryCenters: [number, number][] = calculateCategoryCenters(
             vizControls.categoryDetails.length,
-            (width + height) / 2.0 * 0.2,
-            width, height
+            (svgWidth + svgHeight) / 2.0 * 0.3,
+            svgWidth, svgHeight
         ) as [number, number][]
-
-        console.log(categoryCenters)
 
         const newNodeCenters: [number, number][] = []
         
-        const SPACING = 10
-        let r = 0
-        let c = 0
+        const SPACING = 100
+        let r = new Array(vizControls.categoryDetails.length).fill(0)
+        let c = new Array(vizControls.categoryDetails.length).fill(0)
 
         subgraph.nodes.forEach((node,i) => {
             const nCol = Math.floor(Math.sqrt(vizControls.categoryCounts[node.category]))
-            const x = categoryCenters[node.category][0] + c * SPACING
-            const y = categoryCenters[node.category][1] + r * SPACING
+            const x = categoryCenters[node.category][0] + c[node.category] * SPACING
+            const y = categoryCenters[node.category][1] + r[node.category] * SPACING
 
             newNodeCenters.push([x,y])
 
-            r += 1
-            if(r === nCol) {
-                r = 0
-                c += 1
+            r[node.category] += 1
+            if(r[node.category] === nCol) {
+                r[node.category] = 0
+                c[node.category] += 1
             }
         })
         setNodeCenters(newNodeCenters)
-    }, [subgraph.nodes, vizControls.categoryCounts, vizControls.categoryDetails])
+    }, [subgraph.nodes])
 
+    console.log(nodeCenters)
 
     return (
         <>
@@ -187,7 +213,16 @@ function MainGraph() {
                                 <svg ref={svgRoot} id="maingraph" className="fullsize" style={{
                                     position: "absolute",
                                     background: "white",
+                                    width: "100%",
+                                    height: "100%",
                                 }}>
+                                    {(vizControls.nodeIds.length === 0
+                                        || subgraph.nodes.length === 0
+                                        || Object.keys(vizControls.categoryCounts).length === 0
+                                        || Object.keys(vizControls.categoryDetails).length === 0
+                                        || nodeCenters.length === 0
+                                        || nodeWeights.length === 0
+                                        || (nodeWeightDomain[0] === 0 && nodeWeightDomain[1] === 1))?<text>Loading</text>:
                                     <g className="everything">
                                         <g className="relationview">
                                             <g className="relationlinks"></g>
@@ -197,23 +232,29 @@ function MainGraph() {
                                         <g className="linkgroup"></g>
                                         <g className="nodegroup">
                                             {subgraph.nodes.map((node, i) => <g
+                                                key={idToClass(node.id)}
                                                 className={"node"+node.pinned?" pinned":""}
                                                 id={idToClass(node.id)}
+                                                transform={`translate(${nodeCenters[i][0]},${nodeCenters[i][1]})`}
                                             >
                                                 <text
                                                     dominantBaseline="hanging"
                                                     textAnchor="middle"
                                                     x="0"
-                                                    y={nodeRadiusScale[vizControls.nodeRadiusScale](node.weight?node.weight:5)}
+                                                    y={nodeRadiusScale[vizControls.nodeRadiusScale](nodeWeights[node.id]?nodeWeights[node.id]:5)}
                                                 >
                                                     {shortenText(node.label)}
-
                                                 </text>
+                                                <circle
+                                                    r={nodeWeights[node.id]?nodeRadiusScale[vizControls.nodeRadiusScale](nodeWeights[node.id]):5}
+                                                    stroke={categoryNodeColors[node.category].hex()}
+                                                    fill={categoryNodeColors[node.category].hex()}
+                                                />
 
                                             </g>)}
                                         </g>
-                                    </g>
-                                    <g className="ui">
+                                    </g>}
+                                    {/* <g className="ui">
                                         <g transform="scale(0.4, 0.4),translate(100, 100)" className="backbtn" style={{
                                             position: "absolute"
                                         }}>
@@ -226,7 +267,7 @@ function MainGraph() {
                                                 c2.929-2.929,2.929-7.679,0-10.607c-1.465-1.464-3.384-2.197-5.304-2.197c-1.919,0-3.838,0.733-5.303,2.196l-41.629,41.628
                                                 c-1.407,1.406-2.197,3.313-2.197,5.303c0.001,1.99,0.791,3.896,2.198,5.305L94.861,156.507z"/>
                                         </g>
-                                    </g>
+                                    </g> */}
                                 </svg>
                             </main>
                             <div style={{

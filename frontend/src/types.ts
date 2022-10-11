@@ -7,7 +7,6 @@ export interface Node {
     pinned: boolean,
     degree: number,
 
-    weight: number|null
     x: number|null,
     y: number|null
 }
