@@ -22,3 +22,5 @@ export type InfluenceColors = {
     id:"Pos"|"Neu"|"Neg",
     value: Color,
 }[]
+
+export type Point2D = [number,number]

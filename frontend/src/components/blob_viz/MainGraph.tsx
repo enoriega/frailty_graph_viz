@@ -13,7 +13,6 @@ import { initCategories, selectVizControls, setNodeIds } from '../../features/vi
 import { selectWeights } from '../../features/weights/weights';
 import { useAppSelector, useAppDispatch } from '../../app/hooks';
 import Color from 'color';
-import { sort } from 'd3';
 
 export const categoryNodeColors = [
     Color("#411c58"),
@@ -39,27 +38,10 @@ export const categoryHullColors = {
     8: "#848a9a",
 }
 
-const ASPECT_RATIO = 16/9;
-const minHeight = 300;
-const minWidth = 300;
-
-
 function shortenText(t: string) {
     if (t.length <= 15) return t;
     return t.substring(0, 7) + '...' + t.substring(t.length-3)
 };
-
-const influenceLinkColors: InfluenceColors = [
-    { id:"Pos", value: Color("#4bb543")},
-    { id:"Neu", value: Color("grey")},
-    { id:"Neg", value: Color("#ff8484")},
-];
-
-const influenceNodeColors: InfluenceColors = [
-    { id:"Pos", value: Color("#5cc654")},
-    { id:"Neu", value: Color("lightgrey")},
-    { id:"Neg", value: Color("#ff9595")},
-];
 
 
 function MainGraph() {
@@ -229,7 +211,23 @@ function MainGraph() {
                                             <g className="relationnodes"></g>
                                         </g>
                                         <g className="hullgroup"></g>
-                                        <g className="linkgroup"></g>
+                                        <g className="linkgroup">
+                                            {subgraph.links.map((edge, i) => <g
+                                                key={idToClass(edge.source)+idToClass(edge.target)}
+                                                className={"line source_"+edge.source+" target_"+edge.target+" "+edge.samecategory?"intracategory":"betweencategory"}
+                                            >
+                                                <text
+                                                    x={nodeCenters[subgraph.nodes.findIndex(node => node.id == edge.source)][0]+nodeCenters[subgraph.nodes.findIndex(node => node.id == edge.target)][0]}
+                                                    y={nodeCenters[subgraph.nodes.findIndex(node => node.id == edge.source)][1]+nodeCenters[subgraph.nodes.findIndex(node => node.id == edge.target)][1]}
+                                                >{edge.freq}</text>
+                                                <line
+                                                    x1={nodeCenters[subgraph.nodes.findIndex(node => node.id == edge.source)][0]}
+                                                    y1={nodeCenters[subgraph.nodes.findIndex(node => node.id == edge.source)][1]}
+                                                    x2={nodeCenters[subgraph.nodes.findIndex(node => node.id == edge.target)][1]}
+                                                    y2={nodeCenters[subgraph.nodes.findIndex(node => node.id == edge.target)][1]}
+                                                ></line>
+                                            </g>)}
+                                        </g>
                                         <g className="nodegroup">
                                             {subgraph.nodes.map((node, i) => <g
                                                 key={idToClass(node.id)}
@@ -276,8 +274,6 @@ function MainGraph() {
                                 flexDirection: "column",
                             }}>
                                 <BlobLegends
-                                    influenceLinkColors={influenceLinkColors}
-                                    influenceNodeColors={influenceNodeColors}
                                     height="60%"
                                     radiusScaleDomain={nodeRadiusScale[vizControls.nodeRadiusScale].domain() as [number, number]}
                                     radiusScaleRange={nodeRadiusScale[vizControls.nodeRadiusScale].range() as [number, number]} />

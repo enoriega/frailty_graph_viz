@@ -1,16 +1,12 @@
 import React from 'react';
 import * as d3 from "d3";
-// import { Color } from "../../types"
-import Color from 'color'
 import { selectVizControls } from '../../features/viz-controls/vizControls';
 import { useAppSelector } from '../../app/hooks';
-import { InfluenceColors } from '../../types';
+import { influenceLinkColors, influenceNodeColors } from '../../utils'
 
 
 
-const BlobLegends = ({ influenceLinkColors, influenceNodeColors, height, radiusScaleDomain, radiusScaleRange }:{
-    influenceLinkColors: InfluenceColors,
-    influenceNodeColors: InfluenceColors,
+const BlobLegends = ({ height, radiusScaleDomain, radiusScaleRange }:{
     height: `${number}%`,
     radiusScaleDomain: [number, number],
     radiusScaleRange: [number, number],
