@@ -4,6 +4,7 @@ import CytoscapeComponent from "react-cytoscapejs";
 import klay from 'cytoscape-klay';
 import { useEffect, useRef, useState, useMemo } from "react";
 import { getInteraction, fetchEvidence, fetchNeighbots, saveCoefficients } from './utils/api';
+import { categoryNodeColors } from './utils/utils';
 import EvidencePanel from './components/EvidencePanel';
 import { Button, Spinner, Row, Col, Container } from 'react-bootstrap';
 import WeightPanel from './components/weight/WeightPanel';
@@ -14,7 +15,7 @@ Cytoscape.use(klay);
 
 function color_by_label(elem, arrow=false){
 	if(elem.id().startsWith("cluster_"))
-		return "brown"
+		return "gray"
 	else {
 		let label = elem.data()['polarity'].toLowerCase()
 		if (label === "positive")//(label.endsWith("(positive)") || label === "positive_association")
@@ -40,14 +41,42 @@ function make_label(elem, coefficients){
 	return `${polarity} (${freq}) W: ${w.toFixed(2)}`
 }
 
+// This is a quick fix. We can make this more elegant later
+const categories = {
+	"uniprot": "Proteins or Gene Products",
+	"mesh": "Diseases",
+	"go": "Biological Process",
+	"fplx": "Proteins or Gene Products",
+	"pubchem": "Chemicals",
+	"interpro": "Proteins or Gene Products",
+	"proonto": "Proteins or Gene Products",
+	"chebi": "Chemicals",
+	"pfam": "Proteins or Gene Products",
+	"frailty": "Biological Process",
+	"bioprocess": "Biological Process",
+	"atcc": "Cells, Organs and Tissues",
+	"cellosaurus": "Cells, Organs and Tissues",
+	"cl": "Cells, Organs and Tissues",
+	"tissuelist": "Cells, Organs and Tissues",
+	"uberon": "Cells, Organs and Tissues",
+}
+const category_encoding = {
+    'Proteins or Gene Products': 1,
+    'Diseases': 2,
+    'Biological Process': 3,
+    'Chemicals': 4,
+    "Cells, Organs and Tissues": 5
+}
+
 const stylesheet = (coefficients) => {
 	return [{
 		selector: 'node',
 		style: {
 			shape: 'ellipse',
 			// size: "1em",
-			'background-color': 'red',
-			label: (ele) => { return ele.data()['label'] + ` (${ele.data()['id']})`},
+			'background-color': (ele) => categoryNodeColors[category_encoding[categories[ele.data()['id'].split(":")[0]]]].hex(),
+			label: (ele) => ele.data()['label'],
+			title: (ele) => ele.data()['id'], // I don't know if there is a way to have a hover to show id effect in cytoscapejs
 			// 'font-size': '.3em'
 		}
 	},
