@@ -1,9 +1,7 @@
 body{
 	background-color:#fafafa;
 }
-.container {
-  /*display: flex;*/
-  /*flex-direction: column;*/
+/* .container {
 	position: absolute;
 	left: 0;
 	top: 0;
@@ -11,7 +9,7 @@ body{
 	background-color:rgba(207,207,196, 0.5);
 	padding: 0 1em 1em;
 	border-radius: 25px;
-}
+} */
 
 /*.Strong {*/
 /*    color:Blue;*/
