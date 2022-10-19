@@ -72,18 +72,24 @@ def get_blob_graph() -> PreprocessedVizData:
 
     # Creating no-self-loop and singly-graph variants
     G_no_selfloop = get_graph()
-    # G_no_selfloop.remove_edges_from(nx.selfloop_edges(G_no_selfloop))
+    G_no_selfloop.remove_edges_from(nx.selfloop_edges(G_no_selfloop))
     G_se = nx.DiGraph()
     G_se.add_nodes_from(G_no_selfloop.nodes.data())
-    edges = {
-        (u, v): 0 for u, v, i in G_no_selfloop.edges
-    }
-    for i, (u, v, d) in enumerate(G_no_selfloop.edges.data()):
-        if 'freq' in d:
-            edges[(u, v)] += d['freq']
+    single_edges = {}
+    for u,v,_ in G_no_selfloop.edges:
+        if (v,u) in single_edges:
+            single_edges[(v,u)] = 0
         else:
-            edges[(u, v)] += 1
-    for k, v in edges.items():
+            single_edges[(u,v)] = 0
+
+    for _, (u, v, d) in enumerate(G_no_selfloop.edges.data()):
+        if (u,v) not in single_edges:
+            v,u = u,v
+        if 'freq' in d:
+            single_edges[(u, v)] += d['freq']
+        else:
+            single_edges[(u, v)] += 1
+    for k, v in single_edges.items():
         G_se.add_edge(k[0], k[1], freq=v)
 
     max_freq = max([d[2]['freq'] for d in G_se.edges.data()])

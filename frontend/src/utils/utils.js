@@ -1,3 +1,5 @@
+import Color from 'color';
+
 export function groupBy(arr, criteria) {
     return arr.reduce(function (acc, currentValue) {
         const group = criteria(currentValue)
@@ -70,26 +72,44 @@ export const calculateCategoryCentersEllipse = (cats, a, b, width, height) => [.
     return [x, y];
 });
 
-export const categoryNodeColors = {
-    1: "#411c58",
-    2: "#00308e",
-    3: "#8a2a44",
-    4: "#10712b",
-    // https://coolors.co/4e7e72-fe9c9a-c1aa85-848a9a
-    5: "#1f332e", 
-    6: "#fd2521", 
-    7: "#886e44", 
-    8: "#494e5a", 
+// https://colorbrewer2.org/#type=qualitative&scheme=Paired&n=5
+const HULL_LIGHTEN_FACTOR = 0.1
+export const categoryHullColors1 = {
+    1: Color("#a6cee3").lighten(HULL_LIGHTEN_FACTOR),
+    2: Color("#1f78b4").lighten(HULL_LIGHTEN_FACTOR),
+    3: Color("#b2df8a").lighten(HULL_LIGHTEN_FACTOR),
+    4: Color("#33a02c").lighten(HULL_LIGHTEN_FACTOR),
+    5: Color("#fb9a99").lighten(HULL_LIGHTEN_FACTOR),
+}
+// https://colorbrewer2.org/#type=qualitative&scheme=Dark2&n=5
+export const categoryHullColors = {
+    1: Color("#1b9e77").lighten(HULL_LIGHTEN_FACTOR),
+    2: Color("#d95f02").lighten(HULL_LIGHTEN_FACTOR),
+    3: Color("#7570b3").lighten(HULL_LIGHTEN_FACTOR),
+    4: Color("#e7298a").lighten(HULL_LIGHTEN_FACTOR),
+    5: Color("#66a61e").lighten(HULL_LIGHTEN_FACTOR),
 }
 
-export const categoryHullColors = {
-    1: "#d282be",
-    2: "#a6d9ef",
-    3: "#ffa770",
-    4: "#e5f684",
-    // https://coolors.co/4e7e72-fe9c9a-c1aa85-848a9a
-    5: "#4e7e72",
-    6: "#fe9c9a",
-    7: "#c1aa85",
-    8: "#848a9a",
+// returns a new object with the values at each key mapped using mapFn(value)
+function objectMap(object, mapFn) {
+  return Object.keys(object).reduce(function(result, key) {
+    result[key] = mapFn(object[key])
+    return result
+  }, {})
+}
+
+export const categoryNodeColors = objectMap(categoryHullColors, color => color.darken(0.5))
+            
+
+export function createArc(x1,y1,x2,y2) {
+    return `
+    M ${x1} ${y1}
+    A 600 600 0 0 0 ${x2} ${y2}
+    `
+}
+export function createLine(x1,y1,x2,y2) {
+    return `
+    M ${x1} ${y1}
+    L ${x2} ${y2}
+    `
 }

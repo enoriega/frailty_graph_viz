@@ -24,6 +24,7 @@ export default function App() {
       <Navbar bg="dark" variant="dark" className="me-auto" expand="lg" style={{
         paddingLeft: "2em",
         paddingRight: "2em",
+        marginBottom: "20px"
       }}>
         <Container fluid>
           <LinkContainer to="/">
