@@ -4,6 +4,7 @@ import "../../Chevron.css"
 import React from "react";
 import { useState } from "react";
 import {Link} from "react-router-dom";
+import { categoryNodeColors, getCategoryFromId } from "../../utils/utils";
 
 export default function EntityColumn({ title, data, sorter, grouper, anchor }){
 
@@ -39,7 +40,9 @@ export default function EntityColumn({ title, data, sorter, grouper, anchor }){
 									<Link to={{
 										pathname: "viz",
 										search: `?src=${anchor}&dst=${id}&bidirect`
-									}}>{`${name} (${id})`}</Link> - F: {freq} - W: {weight.toFixed(2)} - D: {meta.num_papers}
+									}}><span style={{
+										color: categoryNodeColors[getCategoryFromId(id)].hex(),
+									}}>{`${name} (${id})`}</span></Link> - F: {freq} - W: {weight.toFixed(2)} - D: {meta.num_papers}
 								</li>
 							);
 					});

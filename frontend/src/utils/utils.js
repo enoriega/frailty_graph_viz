@@ -113,3 +113,34 @@ export function createLine(x1,y1,x2,y2) {
     L ${x2} ${y2}
     `
 }
+
+// We should get this from backend. But for now, we hardcode it here.
+export const categories = {
+	"uniprot": "Proteins or Gene Products",
+	"mesh": "Diseases",
+	"go": "Biological Process",
+	"fplx": "Proteins or Gene Products",
+	"pubchem": "Chemicals",
+	"interpro": "Proteins or Gene Products",
+	"proonto": "Proteins or Gene Products",
+	"chebi": "Chemicals",
+	"pfam": "Proteins or Gene Products",
+	"frailty": "Biological Process",
+	"bioprocess": "Biological Process",
+	"atcc": "Cells, Organs and Tissues",
+	"cellosaurus": "Cells, Organs and Tissues",
+	"cl": "Cells, Organs and Tissues",
+	"tissuelist": "Cells, Organs and Tissues",
+	"uberon": "Cells, Organs and Tissues",
+}
+export const category_encoding = {
+    'Proteins or Gene Products': 1,
+    'Diseases': 2,
+    'Biological Process': 3,
+    'Chemicals': 4,
+    "Cells, Organs and Tissues": 5
+}
+
+export function getCategoryFromId(id) {
+    return category_encoding[categories[id.split(':')[0]]]
+}
