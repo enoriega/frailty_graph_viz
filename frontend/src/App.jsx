@@ -35,7 +35,7 @@ export default function App() {
                   <Nav.Link>Interactions Overview</Nav.Link>
               </LinkContainer>
 
-              <NavDropdown title="Graphic Overview" id="basic-nav-dropdown">
+              <NavDropdown title="Visual Overview" id="basic-nav-dropdown">
               <LinkContainer to="/blob-viz-il6">
                   <NavDropdown.Item>Start from IL-6</NavDropdown.Item>
               </LinkContainer>
@@ -46,10 +46,10 @@ export default function App() {
 
 
               <LinkContainer to="/evidence-index">
-                  <Nav.Link>Search Evidence</Nav.Link>
+                  <Nav.Link>Full Text Search</Nav.Link>
               </LinkContainer>
               <LinkContainer to="/structured-search">
-                  <Nav.Link>Structured Evidence Search</Nav.Link>
+                  <Nav.Link>Participant Search</Nav.Link>
               </LinkContainer>
             </Nav>
         </Container>
