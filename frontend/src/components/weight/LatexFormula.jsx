@@ -1,29 +1,25 @@
 import { MathJaxContext, MathJax } from 'better-react-mathjax';
 
-export function generateLatexCode(coefficients){
+export function generateLatexCode(coefficients) {
 
-    const {
-		frequency, hasSignificance, avgImpactFactor, maxImpactFactor, pValue
-	}  = coefficients;
+  const {
+    frequency, hasSignificance, avgImpactFactor, maxImpactFactor, pValue
+  } = coefficients;
 
-    let latex = `\\begin{equation}
-                        \\begin{aligned}
-                          \\textbf{weight} = &${frequency}\\times\\log(\\text{freq} + 1) + ${hasSignificance} \\times \\text{has significance} + \\
-                            ${avgImpactFactor} \\times \\text{avg impact factor} + \\\\
-                            & ${maxImpactFactor} \\times \\text{max impact factor} +  ${pValue} \\times (1 - \\text{avg p-value}) \\\\
-                        \\end{aligned}
+  let latex = `\\begin{equation}
+                  \\textbf{weight} = ${frequency === 1 ? "" : frequency}\\log(F + 1) + ${hasSignificance === 1 ? "" : hasSignificance} S + ${avgImpactFactor === 1 ? "" : avgImpactFactor} I_a + ${maxImpactFactor === 1 ? "" : maxImpactFactor} I_m + ${pValue === 1 ? "" : pValue} (1 - p) \\\\
                 \\end{equation}`
 
-    return latex
+  return latex
 }
 
-export default function LatexFormula({ coefficients }){
+export default function LatexFormula({ coefficients }) {
 
-	const latex = generateLatexCode(coefficients);
-	
-	return (
-		<MathJaxContext>
-			<div className="latex-formula"><MathJax dynamic={true}>{ latex }</MathJax></div>
-		</MathJaxContext>
-	)
+  const latex = generateLatexCode(coefficients);
+
+  return (
+    <MathJaxContext>
+      <div className="latex-formula"><MathJax dynamic={true}>{latex}</MathJax></div>
+    </MathJaxContext>
+  )
 }

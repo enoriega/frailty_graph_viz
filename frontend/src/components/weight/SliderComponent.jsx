@@ -1,25 +1,30 @@
+import { MathJaxContext, MathJax } from 'better-react-mathjax';
 import RangeSlider from 'react-bootstrap-range-slider';
 import { Form, Row, Col } from 'react-bootstrap';
 import { useState } from 'react';
 
-export default function SliderComponent({label, value, max, granularity, onChange}) {
+export default function SliderComponent({ label, value, max, granularity, onChange }) {
 
 	const [currentValue, setCurrentValue] = useState(value);
 
-	if(!max)
+	if (!max)
 		max = 10;
 
-	if(!granularity)
+	if (!granularity)
 		granularity = .1;
 
 	return (
 		<Form>
 			<Form.Group as={Row}>
 				<Col>
-					<Form.Label>{label}:</Form.Label>
+					<Form.Label>
+						<MathJaxContext>
+							<MathJax dynamic={true}>{label}</MathJax>
+						</MathJaxContext>
+					</Form.Label>
 				</Col>
 				<Col xs={9}>
-					<RangeSlider 
+					<RangeSlider
 						value={currentValue}
 						min={1}
 						max={max}
@@ -27,9 +32,9 @@ export default function SliderComponent({label, value, max, granularity, onChang
 						tooltip='off'
 						onChange={e => setCurrentValue(e.target.value)}
 						onAfterChange={e => {
-							if(onChange)
+							if (onChange)
 								onChange(currentValue);
-							}
+						}
 						}
 					/>
 				</Col>
@@ -37,7 +42,7 @@ export default function SliderComponent({label, value, max, granularity, onChang
 					<Form.Control type="number" value={currentValue}
 						onChange={e => {
 							setCurrentValue(e.target.value);
-							if(onChange)
+							if (onChange)
 								onChange(e.target.value);
 						}}
 					/>

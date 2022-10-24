@@ -72,24 +72,6 @@ export const calculateCategoryCentersEllipse = (cats, a, b, width, height) => [.
     return [x, y];
 });
 
-// https://colorbrewer2.org/#type=qualitative&scheme=Paired&n=5
-const HULL_LIGHTEN_FACTOR = 0.1
-export const categoryHullColors1 = {
-    1: Color("#a6cee3").lighten(HULL_LIGHTEN_FACTOR),
-    2: Color("#1f78b4").lighten(HULL_LIGHTEN_FACTOR),
-    3: Color("#b2df8a").lighten(HULL_LIGHTEN_FACTOR),
-    4: Color("#33a02c").lighten(HULL_LIGHTEN_FACTOR),
-    5: Color("#fb9a99").lighten(HULL_LIGHTEN_FACTOR),
-}
-// https://colorbrewer2.org/#type=qualitative&scheme=Dark2&n=5
-export const categoryHullColors = {
-    1: Color("#1b9e77").lighten(HULL_LIGHTEN_FACTOR),
-    2: Color("#d95f02").lighten(HULL_LIGHTEN_FACTOR),
-    3: Color("#7570b3").lighten(HULL_LIGHTEN_FACTOR),
-    4: Color("#e7298a").lighten(HULL_LIGHTEN_FACTOR),
-    5: Color("#66a61e").lighten(HULL_LIGHTEN_FACTOR),
-}
-
 // returns a new object with the values at each key mapped using mapFn(value)
 function objectMap(object, mapFn) {
   return Object.keys(object).reduce(function(result, key) {
@@ -98,13 +80,42 @@ function objectMap(object, mapFn) {
   }, {})
 }
 
-export const categoryNodeColors = objectMap(categoryHullColors, color => color.darken(0.5))
+const SELECTED_PALETTE = 10;
+
+const categoryNodeColorsStr = [
+    // All color palettes from ColorBrewer2 with 5 qualitative colors
+    ['#7fc97f','#beaed4','#fdc086','#ffff99','#386cb0'], // 0
+    ['#1b9e77','#d95f02','#7570b3','#e7298a','#66a61e'], // 1
+    ['#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99'], // 2
+    ['#fbb4ae','#b3cde3','#ccebc5','#decbe4','#fed9a6'], // 3
+    ['#b3e2cd','#fdcdac','#cbd5e8','#f4cae4','#e6f5c9'], // 4
+    ['#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00'], // 5
+    ['#66c2a5','#fc8d62','#8da0cb','#e78ac3','#a6d854'], // 6
+    ['#8dd3c7','#ffffb3','#bebada','#fb8072','#80b1d3'], // 7
+
+    // From Colour Schemes by Paul Tol (https://personal.sron.nl/~pault/data/colourschemes.pdf)
+    // bright scheme: [blue, red, green, yellow, cyan]
+    ['#4477aa', '#ee6677', '#228833', '#ccbb44', '#66ccee'], // 8
+    // bright scheme without red and green and added teal: [blue, yellow, cyan, purple, teal]
+    ['#4477aa', '#ccbb44', '#66ccee', '#aa3377', '#009988'], // 9
+    // light scheme: [light cyan, mint, pear, light yellow, orange]: better with: darken(0.25)
+    ['#99ddff', '#44bb99', '#bbcc33', '#eedd88', '#ee8866'], // 10
+]
+
+export const categoryNodeColors = {};
+let i = 1;
+categoryNodeColorsStr[SELECTED_PALETTE].map(c => Color(c)).forEach(color => {
+    categoryNodeColors[i] = color.darken(0.3)
+    i += 1;
+})
+
+export const categoryHullColors = objectMap(categoryNodeColors, color => color.fade(0.8))
             
 
 export function createArc(x1,y1,x2,y2) {
     return `
     M ${x1} ${y1}
-    A 600 600 0 0 0 ${x2} ${y2}
+    A 100 100 0 0 0 ${x2} ${y2}
     `
 }
 export function createLine(x1,y1,x2,y2) {
