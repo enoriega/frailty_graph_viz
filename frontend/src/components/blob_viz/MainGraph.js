@@ -8,7 +8,7 @@ import "../styles/MainGraph.scss";
 import WeightPanel from '../weight/WeightPanel';
 import SidePanel from "./SidePanel";
 import EvidencePanelWrapper from './EvidencePanelWrapper';
-import { idToClass, calculateCategoryCenters, calculateCategoryCentersEllipse, normalizeDistance, categoryNodeColors, categoryHullColors, createLine, createArc } from '../../utils/utils';
+import { idToClass, calculateCategoryCenters, calculateCategoryCentersEllipse, normalizeDistance, categoryNodeColors, categoryHullColors, createLine, createArc, influenceLinkColors, influenceNodeColors } from '../../utils/utils';
 import BlobLegends from './BlobLegends';
 import NodeDetail from './NodeDetail';
 
@@ -57,19 +57,6 @@ const forceProperties = {
         distanceFactor: 5
     }
 };
-
-const influenceLinkColors = [
-    { id:"Pos", value: "#4bb543"},
-    { id:"Neu", value: "grey"},
-    { id:"Neg", value: "#ff8484"},
-];
-
-const influenceNodeColors = [
-    { id:"Pos", value: "#5cc654"},
-    { id:"Neu", value: "lightgrey"},
-    { id:"Neg", value: "#ff9595"},
-];
-
 
 const updateForces = ({ simulation, maxLinkDist, categoriesDetailsLength, restart }) => {
     simulation.stop();
@@ -370,7 +357,8 @@ const MainGraph = ({ apiUrls, defaultEntities }) => {
 
         const BlobLegendsColors = Object.entries(categoriesDetails).map(([k, v]) => ({
             id: v,
-            color: categoryNodeColors[k],
+            hullColor: categoryHullColors[k],
+            nodeColor: categoryNodeColors[k],
             encoding: k
         }));;
         setBlobLegendsColors(BlobLegendsColors);
@@ -1048,7 +1036,7 @@ const MainGraph = ({ apiUrls, defaultEntities }) => {
                                 </svg>
                             </main>
                             <div style={{
-                                width: "300px",
+                                width: "350px",
                                 display: "flex",
                                 flexDirection: "column",
                             }}>

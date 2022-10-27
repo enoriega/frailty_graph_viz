@@ -80,9 +80,21 @@ function objectMap(object, mapFn) {
   }, {})
 }
 
-const SELECTED_PALETTE = 10;
 
-const categoryNodeColorsStr = [
+export const influenceLinkColors = [
+    { id:"Pos", value: "#e9a3c9"},
+    { id:"Neu", value: "lightgrey"},
+    { id:"Neg", value: "#a1d76a"},
+];
+
+export const influenceNodeColors = influenceLinkColors;
+
+
+
+const SELECTED_HULL_PALETTE = 11;
+const SELECTED_NODE_PALETTE = 4;
+
+const categoryHullColorsStr = [
     // All color palettes from ColorBrewer2 with 5 qualitative colors
     ['#7fc97f','#beaed4','#fdc086','#ffff99','#386cb0'], // 0
     ['#1b9e77','#d95f02','#7570b3','#e7298a','#66a61e'], // 1
@@ -98,18 +110,45 @@ const categoryNodeColorsStr = [
     ['#4477aa', '#ee6677', '#228833', '#ccbb44', '#66ccee'], // 8
     // bright scheme without red and green and added teal: [blue, yellow, cyan, purple, teal]
     ['#4477aa', '#ccbb44', '#66ccee', '#aa3377', '#009988'], // 9
-    // light scheme: [light cyan, mint, pear, light yellow, orange]: better with: darken(0.25)
-    ['#99ddff', '#44bb99', '#bbcc33', '#eedd88', '#ee8866'], // 10
+    // light scheme: [light blue, light cyan, mint, pear, olive, light yellow, orange, pink]
+    ['#77aadd', '#99ddff', '#44bb99', '#bbcc33', '#aaaa00'], // 10
+
+    // Final scheme
+    // modified light scheme: [light blue, mint, pear, orange, pink]
+    ['#77aadd', '#44bb99', '#bbcc33', '#EE8866', '#ffaabb'], // 11
 ]
 
-export const categoryNodeColors = {};
+export const categoryHullColors = {};
 let i = 1;
-categoryNodeColorsStr[SELECTED_PALETTE].map(c => Color(c)).forEach(color => {
-    categoryNodeColors[i] = color.darken(0.3)
+categoryHullColorsStr[SELECTED_HULL_PALETTE].map(c => Color(c)).forEach(color => {
+    categoryHullColors[i] = color
     i += 1;
 })
 
-export const categoryHullColors = objectMap(categoryNodeColors, color => color.fade(0.8))
+// export const categoryHullColors = objectMap(categoryNodeColors, color => color.fade(0.8))
+
+const categoryNodeColorsStr = [
+    // Muted qualitative colour scheme as of Figure 4 of Color Paper
+    // Color scheme: [indigo, cyan, teal, green, olive, sand, rose, wine, purple]
+    ['#332288', '#88CCEE', '#44AA99', '#117733', '#999933', '#DDCC77', '#CC6677', '#882255', '#AA4499'], // 0
+    // Same but reordered to match corresponding hulls
+    ['#332288', '#88CCEE', '#44AA99', '#117733', '#999933', '#DDCC77', '#CC6677', '#882255', '#AA4499'], // 1
+    ['black', 'black', 'black', 'black', 'black', 'black', 'black'], // 2
+    categoryHullColorsStr[SELECTED_HULL_PALETTE], // 3
+    ['#332288', '#117733', '#999933', '#AA4499', '#882255'] // 4
+
+
+];
+
+export const categoryNodeColors = {};
+i = 1;
+categoryNodeColorsStr[SELECTED_NODE_PALETTE].map(c => Color(c)).forEach(color => {
+    categoryNodeColors[i] = color
+    i += 1;
+})
+
+
+
             
 
 export function createArc(x1,y1,x2,y2) {

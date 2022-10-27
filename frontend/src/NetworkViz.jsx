@@ -4,7 +4,7 @@ import CytoscapeComponent from "react-cytoscapejs";
 import klay from 'cytoscape-klay';
 import { useEffect, useRef, useState, useMemo } from "react";
 import { getInteraction, fetchEvidence, fetchNeighbots, saveCoefficients } from './utils/api';
-import { categoryNodeColors, getCategoryFromId } from './utils/utils';
+import { categoryNodeColors, getCategoryFromId, categoryHullColors, influenceLinkColors } from './utils/utils';
 import EvidencePanel from './components/EvidencePanel';
 import { Button, Spinner, Row, Col, Container } from 'react-bootstrap';
 import WeightPanel from './components/weight/WeightPanel';
@@ -20,16 +20,21 @@ function color_by_label(elem, arrow=false){
 		let label = elem.data()['polarity'].toLowerCase()
 		if (label === "positive")//(label.endsWith("(positive)") || label === "positive_association")
 			if (arrow)
-				return "#77DD77"
+				return influenceLinkColors.find(x => x.id === 'Pos').value
+				// return "#77DD77"
 			else
-				return "#DAF7A6"
+				return influenceLinkColors.find(x => x.id === 'Pos').value
+				// return "#DAF7A6"
 		else if (label === "negative")//(label.endsWith("(negative)") || label === "negative_association")
 			if (arrow)
-				return "#ff4137"
+				return influenceLinkColors.find(x => x.id === 'Neg').value
+				// return "#ff4137"
 			else
-				return "#FAA0A0"
+				return influenceLinkColors.find(x => x.id === 'Neg').value
+				// return "#FAA0A0"
 		else
-			return "#cfcfc4"
+			return influenceLinkColors.find(x => x.id === 'Neu').value
+			// return "#cfcfc4"
 	}
 }
 
@@ -49,7 +54,11 @@ const stylesheet = (coefficients) => {
 			// size: "1em",
 
 			// This is a quick fix. We can make this more elegant later
+			'color': (ele) => categoryNodeColors[getCategoryFromId(ele.data()['id'])].hex(),
 			'background-color': (ele) => categoryNodeColors[getCategoryFromId(ele.data()['id'])].hex(),
+			// 'border-width': 5,
+			'border-color': (ele) => categoryHullColors[getCategoryFromId(ele.data()['id'])].hex(),
+
 			label: (ele) => ele.data()['label'],
 			title: (ele) => ele.data()['id'], // I don't know if there is a way to have a hover to show id effect in cytoscapejs
 
