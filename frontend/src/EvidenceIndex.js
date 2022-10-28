@@ -58,7 +58,7 @@ class QueryBox extends React.Component {
                         </FloatingLabel>
                     </Col>
                     <Col>
-                        <Button variant="primary" onClick={this.props.onClick} size="lg" style={{marginTop: "5px"}}>Search</Button>
+                        <Button variant="secondary" onClick={this.props.onClick} size="lg" style={{marginTop: "5px"}}>Search</Button>
                     </Col>
                 </Row>
             </>    

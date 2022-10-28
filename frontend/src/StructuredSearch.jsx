@@ -137,6 +137,7 @@ export default function StructuredSearch({ apiUrl }){
                         position:"relative",
                         top: "2em"
                     }}
+                    variant="secondary"
                     onClick={ async () => {
                         let [__, s_matches] = await structuredSearch(apiUrl, chosenController[0].id, chosenControlled[0].id)
 

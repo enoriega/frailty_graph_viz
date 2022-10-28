@@ -41,7 +41,7 @@ export default function EntityColumn({ title, data, sorter, grouper, anchor }){
 										pathname: "viz",
 										search: `?src=${anchor}&dst=${id}&bidirect`
 									}}><span style={{
-										color: categoryNodeColors[getCategoryFromId(id)].hex(),
+										color: categoryNodeColors[getCategoryFromId(id)]?categoryNodeColors[getCategoryFromId(id)].hex():"#000000",
 									}}>{`${name} (${id})`}</span></Link> - F: {freq} - W: {weight.toFixed(2)} - D: {meta.num_papers}
 								</li>
 							);

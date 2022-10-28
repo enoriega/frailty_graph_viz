@@ -82,9 +82,9 @@ function objectMap(object, mapFn) {
 
 
 export const influenceLinkColors = [
-    { id:"Pos", value: "#e9a3c9"},
+    { id:"Pos", value: "#a1d76a"},
     { id:"Neu", value: "lightgrey"},
-    { id:"Neg", value: "#a1d76a"},
+    { id:"Neg", value: "#e9a3c9"},
 ];
 
 export const influenceNodeColors = influenceLinkColors;
