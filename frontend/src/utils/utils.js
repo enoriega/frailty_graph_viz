@@ -1,4 +1,5 @@
 import React from 'react'
+import Color from 'color'
 
 export function groupBy(arr, criteria) {
     return arr.reduce(function (acc, currentValue) {
@@ -146,10 +147,6 @@ categoryNodeColorsStr[SELECTED_NODE_PALETTE].map(c => Color(c)).forEach(color =>
     categoryNodeColors[i] = color
     i += 1;
 })
-
-
-
-            
 
 export function createArc(x1,y1,x2,y2) {
     return `

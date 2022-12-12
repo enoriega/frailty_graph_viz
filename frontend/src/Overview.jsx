@@ -5,8 +5,7 @@ import customWeight from './utils/custom_weight';
 import { getEntityCategory, groupBy } from './utils/utils';
 import { Container, Row, Col, Form, Spinner, Dropdown } from 'react-bootstrap'
 import WeightPanel from './components/weight/WeightPanel';
-import { Typeahead, Highlighter, Token } from 'react-bootstrap-typeahead';
-import EntitySearchResultItem from './EntitySearchResultItem';
+import EntityTypeahead from "./EntityTypeahead";
 
 function filterItems(items, shouldContain) {
 	if (shouldContain) {
@@ -75,25 +74,6 @@ function groupByEntityType(items) {
 	return groupBy(items, item => categories[getEntityCategory(item.id)]);
 }
 //////////////////////////////////////////
-
-function EntityTypeahead({ items, onInputChange, onChange }) {
-
-	return <Typeahead
-		id="basic-typeahead-single"
-		labelKey={(option) => `${option.desc.text} (${option.id.text})`}
-		onChange={onChange}
-		onInputChange={onInputChange}
-		options={items}
-		placeholder="Type an entity name or id..."
-		// multiple
-		renderMenuItemChildren={
-			(option, { text }, index) => {
-
-				return <EntitySearchResultItem searchText={text} option={option} showCategoryColor={false} />
-			}
-		}
-	/>
-}
 
 export default function Overview({ apiUrl, entityChoices }) {
 
@@ -220,7 +200,9 @@ export default function Overview({ apiUrl, entityChoices }) {
 			<span style={{fontSize: "1.5em"}}><b>Overview of </b> <span style={{fontStyle: "italic"}}>{entityName}</span> - <span style={{fontSize: "0.8em" }}>{entityId}</span></span>
 			<br />
 			{/*{entityDropdown}*/}
-			<EntityTypeahead items={queryResults} onInputChange={
+			<EntityTypeahead
+				items={queryResults}
+				onInputChange={
 				(input) => {
 					if (input) {
 						// console.log(input)

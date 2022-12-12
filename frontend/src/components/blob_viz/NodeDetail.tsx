@@ -36,7 +36,7 @@ const NodeDetail = ({ height, node }: { height: `${number}%`, node: Node }) => {
         }}>{node!==undefined?node.label:"Hover a node to see details"}</h5>
         <p><b>ID:</b> {node!==undefined?node.id:""}</p>
         <p><b>Category:</b> {node!==undefined?<span  style={{
-            color: vizControls.categoryDetails.length===0?"black":vizControls.categoryDetails[node.category-1].color
+            color: vizControls.categoryDetails.length===0?"black":vizControls.categoryDetails[node.category-1].hullColor
         }}>{vizControls.categoryDetails.length===0?"":vizControls.categoryDetails[node.category - 1].id}</span>:""}</p>
         <p><b>Detected Synonyms:</b><br/></p>
         <ul>

@@ -1,5 +1,7 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit'
+import Color from 'color'
 import { RootState } from '../../app/store'
+import { categoryHullColors, categoryNodeColors } from '../../utils/utils'
 import { getCategories } from '../../utils/vizapi'
 
 export interface VizControls {
@@ -8,12 +10,15 @@ export interface VizControls {
     currentView: "root" | "relation",
     categoryDetails: {
         id: string,
-        color: string,
+        nodeColor: string,
+        hullColor: string,
         encoding: number
     }[],
     categoryCounts: {
         [categoryEncoding: number]: number
-    }
+    },
+    interEdgeOpacity: number,
+    intraEdgeOpacity: number,
 }
 
 const initialState: VizControls = {
@@ -21,7 +26,9 @@ const initialState: VizControls = {
     nodeIds: ["uniprot:P05231"],
     currentView: "root",
     categoryDetails: [],
-    categoryCounts: {}
+    categoryCounts: {},
+    interEdgeOpacity: 0.1,
+    intraEdgeOpacity: 0.1,
 }
 
 export const initCategories = createAsyncThunk<{
@@ -46,6 +53,12 @@ export const vizControlsSlice = createSlice({
         setCurrentView: (state, action: PayloadAction<VizControls["currentView"]>) => {
             state.currentView = action.payload
         },
+        setIntraEdgeOpacity: (state, action: PayloadAction<VizControls["intraEdgeOpacity"]>) => {
+            state.intraEdgeOpacity = action.payload
+        },
+        setInterEdgeOpacity: (state, action: PayloadAction<VizControls["interEdgeOpacity"]>) => {
+            state.interEdgeOpacity = action.payload
+        }
     },
     extraReducers: (builder) => {
         builder.addCase(initCategories.pending, (state, action) => {
@@ -55,7 +68,8 @@ export const vizControlsSlice = createSlice({
         builder.addCase(initCategories.fulfilled, (state, action) => {
             state.categoryDetails = Object.entries(action.payload).map(([k, v]) => ({
                 id: v,
-                color: "#000000",
+                nodeColor: ((categoryNodeColors as {[k: string]: Color})[parseInt(k)+1]).hex(),
+                hullColor: ((categoryHullColors as {[k: string]: Color})[parseInt(k)+1]).hex(),
                 encoding: parseInt(k)
             }))
             state.categoryCounts =  Object.keys(action.payload).reduce((o, key) => Object.assign(o, {[key]: 5}), {});
@@ -68,7 +82,7 @@ export const vizControlsSlice = createSlice({
     }
 })
 
-export const { setNodeRadiusScale, setNodeIds, setCurrentView } = vizControlsSlice.actions
+export const { setNodeRadiusScale, setNodeIds, setCurrentView, setInterEdgeOpacity, setIntraEdgeOpacity } = vizControlsSlice.actions
 export const selectVizControls = (state: RootState) => state.vizControls
 export const selectNodeSelection = (state: RootState) => state.vizControls.nodeIds
 export default vizControlsSlice.reducer

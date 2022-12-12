@@ -1,34 +1,39 @@
-import EvidencePanel from "../EvidencePanel";
-import React from 'react';
-import { Button, Spinner } from "react-bootstrap";
-import { fetchEvidence } from "../../utils/api";
+import EvidencePanel from "../EvidencePanel"
+import React from 'react'
+import { Button, Spinner } from "react-bootstrap"
+import { fetchEvidence } from "../../utils/api"
+import config from "../../config.json"
 
-const EvidencePanelWrapper = ({ apiUrls, onDataChange=null }) => {
+const EvidencePanelWrapper = ({ onDataChange=null }: {
+    onDataChange: null|((newData: {source: string, target: string, polarity: string}) => void)
+}) => {
 	const [isLoading, setIsLoading] = React.useState(false);
     const [isEvidenceOpen, setIsEvidenceOpen] = React.useState(false);
     const [evidenceItems, setEvidenceItems] = React.useState([]);
-    const evidenceRef = React.useRef(null);
+    const evidenceRef = React.useRef<HTMLHeadingElement>(null);
 
-    const dataUpdated = (newData) => {
+    const dataUpdated = (newData: {source: string, target: string, polarity: string}) => {
         setIsLoading(true);
         // newData: {source, target, polarity}
-        fetchEvidence(apiUrls.general, newData.source, newData.target, newData.polarity)
+        fetchEvidence(config.apiUrl, newData.source, newData.target, newData.polarity)
             .then(evidence => {
-                evidence.forEach(ev => {
+                evidence.forEach((ev: any) => {
                     ev.impact = parseFloat(ev.impact)
                 })
-                evidence.sort((a, b) => b.impact - a.impact)
+                evidence.sort((a: {impact: number}, b: {impact: number}) => b.impact - a.impact)
                 
                 setEvidenceItems(evidence);
                 setIsEvidenceOpen(true);
                 setIsLoading(false);
-                evidenceRef.current.scrollIntoView();
+                if(evidenceRef.current)
+                    evidenceRef.current.scrollIntoView();
             });
     }
 
 
     if(onDataChange) {
-        onDataChange(dataUpdated);
+        // TODO: Fix this
+        // onDataChange(dataUpdated);
     }
 
 
@@ -36,7 +41,7 @@ const EvidencePanelWrapper = ({ apiUrls, onDataChange=null }) => {
         {isLoading && <Spinner animation="border" variant="danger" className='loading'/>}
         {isEvidenceOpen &&
             <EvidencePanel
-                apiUrl={apiUrls.general}
+                apiUrl={config.apiUrl}
                 items={evidenceItems} header={
                     <h3 ref={evidenceRef}>Evidence:
                         {' '} <Button variant="secondary" size="sm" onClick={() => { setIsEvidenceOpen(false); }}>Close</Button>

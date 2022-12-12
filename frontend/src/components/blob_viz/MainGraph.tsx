@@ -4,15 +4,16 @@ import { sankey, sankeyLinkHorizontal } from "d3-sankey";
 import WeightPanel from '../weight/WeightPanel';
 import SidePanel from "./SidePanel";
 import EvidencePanelWrapper from './EvidencePanelWrapper';
-import { idToClass, calculateCategoryCenters, calculateCategoryCentersEllipse, normalizeDistance, useEffectDebugger } from '../../utils/utils';
+import { idToClass, calculateCategoryCenters, calculateCategoryCentersEllipse, normalizeDistance, useEffectDebugger, createArc, createLine } from '../../utils/utils';
 import BlobLegends from './BlobLegends';
 import NodeDetail from './NodeDetail';
 import { getBestSubgraph, getNodeWeights } from '../../utils/vizapi';
-import { InfluenceColors, Link, Node } from '../../types';
-import { initCategories, selectVizControls, setNodeIds } from '../../features/viz-controls/vizControls';
+import { InfluenceColors, Link, Node, Point2D } from '../../types';
+import { initCategories, selectVizControls, setCurrentView, setNodeIds } from '../../features/viz-controls/vizControls';
 import { selectWeights } from '../../features/weights/weights';
 import { useAppSelector, useAppDispatch } from '../../app/hooks';
 import Color from 'color';
+import "../styles/MainGraph.scss"
 
 export const categoryNodeColors = [
     Color("#411c58"),
@@ -55,8 +56,9 @@ function MainGraph() {
 
     const [nodeWeights, setNodeWeights] = React.useState<{[nodeId: string]: number}>({})
 
-    const [nodeCenters, setNodeCenters] = React.useState<[number,number][]>([])
+    const [nodeCenters, setNodeCenters] = React.useState<Point2D[]>([])
     const [hoveredNode, setHoveredNode] = React.useState<Node|null>(null)
+    const [nodeSelection, setNodeSelection] = React.useState<Node|null>(null)
 
     // Redux states
     const dispatch = useAppDispatch();
@@ -72,7 +74,7 @@ function MainGraph() {
         setSvgWidth(node.getBoundingClientRect().width)
     }, [setSvgWidth, setSvgHeight])
 
-    const [nodeWeightDomain, setNodeWeightDomain] = React.useState<[number,number]>([0,1])
+    const [nodeWeightDomain, setNodeWeightDomain] = React.useState<Point2D>([0,1])
 
     const nodeRadiusScale = {
         'linear': d3.scaleLinear().range([1,30]).domain(nodeWeightDomain),
@@ -88,12 +90,9 @@ function MainGraph() {
         }
     }, [vizControls.categoryDetails.length])
 
-
     React.useEffect(() => {
-        if(vizControls.categoryDetails.length === 0) return
         getBestSubgraph(vizControls.nodeIds, vizControls.categoryCounts).then(setSubgraph)
-    }, [vizControls.nodeIds])
-
+    }, [vizControls.categoryDetails.length, vizControls.nodeIds, vizControls.categoryCounts])
 
     React.useEffect(() => {
         if(vizControls.categoryDetails.length === 0
@@ -104,10 +103,11 @@ function MainGraph() {
             const nodeWeightMin = Math.min(...Object.values(nodeWeights));
             const nodeWeightMax = Math.max(...Object.values(nodeWeights));
             setNodeWeightDomain([nodeWeightMin, nodeWeightMax])
-            const nodes = structuredClone(subgraph.nodes)
-            nodes.sort((a,b) => nodeWeights[b.id] - nodeWeights[a.id])
-            setSubgraph({ ...subgraph, nodes })
             setNodeWeights(nodeWeights)
+
+            // Ordering weights to subgraph.nodes
+            // const orderedNodeWeights = Object.entries(nodeWeights)
+            // orderedNodeWeights.sort(([id1,weight1], [id2,weight2]) => subgraph.nodes.findIndex(node => node.id === id2) - subgraph.nodes.findIndex(node => node.id === id1))
 
             // TODO: Set legend for nodeRadiusScale
 
@@ -128,13 +128,13 @@ function MainGraph() {
             || svgWidth === -1
         ) return
 
-        const categoryCenters: [number, number][] = calculateCategoryCenters(
+        const categoryCenters: Point2D[] = calculateCategoryCenters(
             vizControls.categoryDetails.length,
             (svgWidth + svgHeight) / 2.0 * 0.3,
             svgWidth, svgHeight
-        ) as [number, number][]
+        ) as Point2D[]
 
-        const newNodeCenters: [number, number][] = []
+        const newNodeCenters: Point2D[] = []
         
         const SPACING = 100
         let r = new Array(vizControls.categoryDetails.length).fill(0)
@@ -142,8 +142,8 @@ function MainGraph() {
 
         subgraph.nodes.forEach((node,i) => {
             const nCol = Math.floor(Math.sqrt(vizControls.categoryCounts[node.category]))
-            const x = categoryCenters[node.category][0] + c[node.category] * SPACING
-            const y = categoryCenters[node.category][1] + r[node.category] * SPACING
+            const x = Math.round(categoryCenters[node.category][0] + c[node.category] * SPACING)
+            const y = Math.round(categoryCenters[node.category][1] + r[node.category] * SPACING)
 
             newNodeCenters.push([x,y])
 
@@ -154,9 +154,7 @@ function MainGraph() {
             }
         })
         setNodeCenters(newNodeCenters)
-    }, [subgraph.nodes])
-
-    console.log(nodeCenters)
+    }, [subgraph])
 
     return (
         <>
@@ -214,24 +212,41 @@ function MainGraph() {
                                         <g className="linkgroup">
                                             {subgraph.links.map((edge, i) => <g
                                                 key={idToClass(edge.source)+idToClass(edge.target)}
-                                                className={"line source_"+edge.source+" target_"+edge.target+" "+edge.samecategory?"intracategory":"betweencategory"}
+                                                className={"line "+idToClass(edge.source)+" "+idToClass(edge.target)+" "+(edge.samecategory?"intracategory":"betweencategory")}
                                             >
                                                 <text
                                                     x={nodeCenters[subgraph.nodes.findIndex(node => node.id == edge.source)][0]+nodeCenters[subgraph.nodes.findIndex(node => node.id == edge.target)][0]}
                                                     y={nodeCenters[subgraph.nodes.findIndex(node => node.id == edge.source)][1]+nodeCenters[subgraph.nodes.findIndex(node => node.id == edge.target)][1]}
                                                 >{edge.freq}</text>
-                                                <line
-                                                    x1={nodeCenters[subgraph.nodes.findIndex(node => node.id == edge.source)][0]}
-                                                    y1={nodeCenters[subgraph.nodes.findIndex(node => node.id == edge.source)][1]}
-                                                    x2={nodeCenters[subgraph.nodes.findIndex(node => node.id == edge.target)][1]}
-                                                    y2={nodeCenters[subgraph.nodes.findIndex(node => node.id == edge.target)][1]}
-                                                ></line>
+
+                                                <path
+                                                    fill="none"
+                                                    onClick={() => {
+                                                        // TODO: Add edge click
+                                                    }}
+                                                    d={edge.samecategory?createArc(
+                                                        nodeCenters[subgraph.nodes.findIndex(node => node.id == edge.source)][0],
+                                                        nodeCenters[subgraph.nodes.findIndex(node => node.id == edge.source)][1],
+                                                        nodeCenters[subgraph.nodes.findIndex(node => node.id == edge.target)][0],
+                                                        nodeCenters[subgraph.nodes.findIndex(node => node.id == edge.target)][1]
+                                                    ):createLine(
+                                                        nodeCenters[subgraph.nodes.findIndex(node => node.id == edge.source)][0],
+                                                        nodeCenters[subgraph.nodes.findIndex(node => node.id == edge.source)][1],
+                                                        nodeCenters[subgraph.nodes.findIndex(node => node.id == edge.target)][0],
+                                                        nodeCenters[subgraph.nodes.findIndex(node => node.id == edge.target)][1]
+                                                    )}
+                                                    opacity={edge.samecategory?vizControls.intraEdgeOpacity:vizControls.interEdgeOpacity}
+                                                    onMouseDown={() => {
+                                                        // TODO: transition to relation view
+                                                    }}
+                                                >
+                                                </path>
                                             </g>)}
                                         </g>
                                         <g className="nodegroup">
                                             {subgraph.nodes.map((node, i) => <g
                                                 key={idToClass(node.id)}
-                                                className={"node"+node.pinned?" pinned":""}
+                                                className={"node"+(node.pinned?" pinned":"")}
                                                 id={idToClass(node.id)}
                                                 transform={`translate(${nodeCenters[i][0]},${nodeCenters[i][1]})`}
                                             >
@@ -244,9 +259,27 @@ function MainGraph() {
                                                     {shortenText(node.label)}
                                                 </text>
                                                 <circle
+                                                    className={""+(hoveredNode && hoveredNode.id === node.id?" hovered":"")+(nodeSelection && nodeSelection.id === node.id?" selected":"")}
                                                     r={nodeWeights[node.id]?nodeRadiusScale[vizControls.nodeRadiusScale](nodeWeights[node.id]):5}
                                                     stroke={categoryNodeColors[node.category].hex()}
                                                     fill={categoryNodeColors[node.category].hex()}
+                                                    onMouseEnter={() => {
+                                                        setHoveredNode(node)
+                                                    }}
+                                                    onMouseLeave={() => {
+                                                        setHoveredNode(null)
+                                                    }}
+                                                    onClick={() => {
+                                                        if(nodeSelection === null)
+                                                            setNodeSelection(node)
+                                                        else {
+                                                            if(nodeSelection.id !== node.id) {
+                                                                dispatch(setCurrentView("relation"))
+                                                            }
+                                                            else
+                                                                setNodeSelection(null)
+                                                        }
+                                                    }}
                                                 />
 
                                             </g>)}
@@ -275,14 +308,14 @@ function MainGraph() {
                             }}>
                                 <BlobLegends
                                     height="60%"
-                                    radiusScaleDomain={nodeRadiusScale[vizControls.nodeRadiusScale].domain() as [number, number]}
-                                    radiusScaleRange={nodeRadiusScale[vizControls.nodeRadiusScale].range() as [number, number]} />
+                                    radiusScaleDomain={nodeRadiusScale[vizControls.nodeRadiusScale].domain() as Point2D}
+                                    radiusScaleRange={nodeRadiusScale[vizControls.nodeRadiusScale].range() as Point2D} />
                                 <NodeDetail
                                     height="40%"
                                     node={hoveredNode?hoveredNode:subgraph.nodes.find(node => node.id === vizControls.nodeIds[0])!} />
                             </div>
                         </div>
-                        {/* <EvidencePanelWrapper apiUrls={apiUrls} onDataChange={(dataFromChild) => { setEvidenceData = dataFromChild; }} /> */}
+                        {/* <EvidencePanelWrapper/> */}
                     </div>
                 </div>
             </div>

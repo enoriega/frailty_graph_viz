@@ -12,7 +12,7 @@ g.linkgroup {
     stroke: black;
   }
 
-  g.hovered path {
+  g path:hover {
     transition: opacity 0s, stroke-width 0s !important;
     stroke-width: 3px !important;
     opacity: 0.8 !important;
