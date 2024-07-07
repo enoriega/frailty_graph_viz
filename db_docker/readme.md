@@ -5,7 +5,13 @@ Create a Docker instance with postgresql installed
 docker run --name frailty_db_server -e POSTGRES_PASSWORD=mysecretpassword -d -p 5432:5432 postgres
 ```
 
-Run ```main.ipynb``` to create the tables and insert the data into the database.
+Run ```main.py``` to create the tables and insert the data into the database.
+
+
+Example:
+```
+python main.py --db-url 'postgresql://postgres:mysecretpassword@localhost/postgres' --data-path 'data/'
+```
 
 
 
