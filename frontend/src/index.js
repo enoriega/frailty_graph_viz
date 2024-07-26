@@ -108,6 +108,12 @@ ReactDOM.render(
 					}
 				/>
 			</Route>
+			<Route path="/structured-search" element={
+				<>
+					<StructuredSearch apiUrl={ apiUrl } />
+					<ScrollToTop />
+				</>
+			}/>
 		</Routes>
 	</BrowserRouter>,
 	rootElement

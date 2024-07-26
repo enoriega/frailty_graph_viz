@@ -1,7 +1,7 @@
 name: frailty_graph_viz
 channels:
   - defaults
-  - condaforge
+  - conda-forge
 dependencies:
   - python=3.9
   - networkx
