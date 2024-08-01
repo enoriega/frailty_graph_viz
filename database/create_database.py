@@ -4,29 +4,26 @@ import argparse
 from tqdm import tqdm
 from models import *
 from pathlib import Path
-from sqlalchemy import func
-from multipledispatch import dispatch
 from sqlmodel import create_engine, Session, select
-
-import uvicorn
-from fastapi import FastAPI
+from sqlalchemy_utils import database_exists, create_database
 
 
 
 
-class create_database:
+class create_db:
     def __init__(self, url_db, data_path, metadata_path):
         self.url_db = url_db
-        self.engine = create_engine(self.url_db, echo=False)
         self.data_path = data_path
         self.metadata_path = metadata_path
+        self.engine = create_engine(self.url_db, echo=False)
         
-    
+        if not database_exists(self.engine.url):
+            create_database(self.engine.url)
+
     
     def create_schema(self):
         SQLModel.metadata.create_all(self.engine)
-    
-        
+            
     
     def import_data(self):
         with open(self.metadata_path, 'r') as f:
@@ -149,7 +146,7 @@ class create_database:
     
     
 
-    def create_db(self):
+    def create(self):
         print(f"Creating database at {self.url_db}")
         self.create_schema()
         
@@ -159,188 +156,19 @@ class create_database:
 
 
 
-class query:
-    def __init__(self, url_db, host, port):
-        self.url_db = url_db
-        self.engine = create_engine(self.url_db, echo=False)
-        self.app = FastAPI()
-        self.host = host
-        self.port = port
-        self.setup_routes()
-
-
-    def setup_routes(self):
-        
-        @self.app.get("/interactions/{kb_name}/{kb_id}")
-        def get_interactions(kb_name:str, kb_id:str):
-            with Session(self.engine) as session:
-                res1 = session.exec(
-                    select(Interaction, Participant, func.count(Interaction.id).label('evidence_count'))
-                    .join(Participant, Interaction.controller == Participant.id)
-                    .join(Evidence, Interaction.id == Evidence.interaction_id)
-                    .where(Participant.kb_name == kb_name, Participant.kb_id == kb_id)
-                    .group_by(Interaction, Participant)).all()
-                res2 = session.exec(select(Interaction, Participant, func.count(Interaction.id).label('evidence_count'))
-                        .join(Participant, Interaction.controlled == Participant.id)
-                        .join(Evidence, Interaction.id == Evidence.interaction_id)
-                        .where(Participant.kb_name == kb_name, Participant.kb_id == kb_id)
-                        .group_by(Interaction, Participant)).all()
-                res = res1 + res2
-                
-                interactions = []
-                for r in res:
-                    controller = session.exec(select(Participant).where(Participant.id == r.Interaction.controller)).first()
-                    controlled = session.exec(select(Participant).where(Participant.id == r.Interaction.controlled)).first()
-                    obj = {
-                        'id': r.Interaction.id,
-                        'controller': f"{controller.kb_name}:{controller.kb_id}",
-                        'controlled': f"{controlled.kb_name}:{controlled.kb_id}",
-                        'polarity': r.Interaction.polarity,
-                        'directed': r.Interaction.directed,
-                        'evidence_count': r.evidence_count
-                    }
-                    interactions.append(obj)
-            return interactions
-
-
-
-        @dispatch(int)
-        @self.app.get("/evidences/{interaction_id}")
-        def get_evidences(interaction_id:int):
-            evidences = []
-            with Session(self.engine) as session:
-                res = session.exec(select(Evidence).where(Evidence.interaction_id == interaction_id)).all()
-                for r in res:
-                    obj = {
-                        'id': r.id,
-                        'text': r.text,
-                        'markup': r.markup
-                    }
-                    evidences.append(obj)
-            return evidences
-
-
-
-        @dispatch(str, str, str, str)
-        @self.app.get("/evidences/{controller_kb_name}/{controller_kb_id}/{controlled_kb_name}/{controlled_kb_id}")
-        def get_evidences(controller_kb_name:str, controller_kb_id:str, controlled_kb_name:str, controlled_kb_id:str):
-            evidences = []
-            res = []
-            with Session(self.engine) as session:
-                controller_id = session.exec(select(Participant).where(Participant.kb_name == controller_kb_name, Participant.kb_id == controller_kb_id)).first().id
-                controlled_id = session.exec(select(Participant).where(Participant.kb_name == controlled_kb_name, Participant.kb_id == controlled_kb_id)).first().id        
-                
-                interactions = session.exec(select(Interaction).where(Interaction.controller== controller_id, Interaction.controlled == controlled_id)).all()        
-                for interaction in interactions:
-                    res += session.exec(select(Evidence).where(Evidence.interaction_id == interaction.id)).all()
-                        
-                for r in res:
-                    obj = {
-                        'id': r.id,
-                        'text': r.text,
-                        'markup': r.markup
-                    }
-                    evidences.append(obj)
-            return evidences
-
-
-
-        @dispatch(str, str, str, str, bool, bool)
-        @self.app.get("/evidences/{controller_kb_name}/{controller_kb_id}/{controlled_kb_name}/{controlled_kb_id}/{polarity}/{directed}")
-        def get_evidences(controller_kb_name:str, controller_kb_id:str, controlled_kb_name:str, controlled_kb_id:str, polarity:bool, directed:bool):
-            evidences = []
-            res = []
-            with Session(self.engine) as session:
-                controller_id = session.exec(select(Participant).where(Participant.kb_name == controller_kb_name, Participant.kb_id == controller_kb_id)).first().id
-                controlled_id = session.exec(select(Participant).where(Participant.kb_name == controlled_kb_name, Participant.kb_id == controlled_kb_id)).first().id
-                
-                interactions = session.exec(select(Interaction).where(Interaction.controller== controller_id, Interaction.controlled == controlled_id, Interaction.polarity == polarity, Interaction.directed == directed)).all()
-                
-                for interaction in interactions:
-                    res += session.exec(select(Evidence).where(Evidence.interaction_id == interaction.id)).all()
-                
-                for r in res:
-                    obj = {
-                        'id': r.id,
-                        'text': r.text,
-                        'markup': r.markup
-                    }
-                    evidences.append(obj)
-            return evidences
-
-
-
-        @self.app.get("/neighbors/{kb_name}/{kb_id}")
-        def get_neighbors(kb_name:str, kb_id:str):
-            neighbors = []
-            n_ids = []
-            with Session(self.engine) as session:
-                participant = session.exec(select(Participant).where(Participant.kb_name == kb_name, Participant.kb_id == kb_id)).first()
-                if participant is None:
-                    return neighbors
-                
-                interactions = session.exec(select(Interaction).where(Interaction.controller == participant.id)).all()
-                for i in interactions:
-                    n_ids.append(i.controlled)
-                    
-                interactions = session.exec(select(Interaction).where(Interaction.controlled == participant.id)).all()
-                for i in interactions:
-                    n_ids.append(i.controller)
-
-                for n_id in set(n_ids):
-                    n_participant = session.exec(select(Participant).where(Participant.id == n_id)).first()
-                    obj = {
-                        'kb_name': n_participant.kb_name,
-                        'kb_id': n_participant.kb_id
-                    }
-                    neighbors.append(obj)
-                return neighbors
-
-
-        # get_interactions('uniprot', 'P54829')
-        # get_evidences1(1)
-        # get_evidences2('uniprot', 'P54829', 'pfam', 'PF02985')
-        # get_evidences3('uniprot', 'P54829', 'pfam', 'PF02985', True, False)
-        # get_neighbors('uniprot', 'P54829')
-
-
-
-    def start_server(self):
-        print(f"Starting FastAPI server with database URL: {self.url_db} and host: http://{self.host}:{self.port}")
-        uvicorn.run(self.app, host=self.host, port=self.port)
-
-
-
-
 def main():
-    default_url = 'postgresql://postgres:mysecretpassword@localhost/db2'
+    default_url = 'postgresql://postgres:mysecretpassword@localhost/postgres'
     
-    
-    parser = argparse.ArgumentParser(description='Import data into a PostgreSQL database and access it via a RESTAPI')
-    subparsers = parser.add_subparsers(dest='command', help='Sub-command help')
-    
-    # Sub-parser for creating the database and inserting data
-    parser_create_db = subparsers.add_parser('create-db', help='Create the database and insert data')
-    parser_create_db.add_argument('--url-db', '-u', default=default_url, type=str, help='Database URL')
-    parser_create_db.add_argument('--data', '-d', default='data/', type=Path, help='Path to the data file')
-    parser_create_db.add_argument('--metadata', '-m', default='articles_metadata.json', type=Path, help='Path to the metadata file')
-    
-    # Sub-parser for initiating FastAPI
-    parser_query_fastapi = subparsers.add_parser('query-fastapi', help='Initiate FastAPI')
-    parser_query_fastapi.add_argument('--url-db', '-u', default=default_url, type=str, help='Database URL')
-    parser_query_fastapi.add_argument('--host-fastapi', '-hf', default='127.0.0.1', type=str, help='FastAPI host')
-    parser_query_fastapi.add_argument('--port', '-p', default=8000, type=int, help='FastAPI port')
+    parser = argparse.ArgumentParser(description='Import data into a PostgreSQL database')
+    parser.add_argument('--url-db', '-u', default=default_url, type=str, help='Database URL')
+    parser.add_argument('--data', '-d', default='data/', type=Path, help='Path to the data file')
+    parser.add_argument('--metadata', '-m', default='articles_metadata.json', type=Path, help='Path to the metadata file')
     
     args = parser.parse_args()
     
-    if args.command in ['create-db']:
-        create_database(args.url_db, args.data, args.metadata).create_db()
-    elif args.command in ['query-fastapi']:
-        query(args.url_db, args.host_fastapi, args.port).start_server()
-    else:
-        parser.print_help()
+    create_db(args.url_db, args.data, args.metadata).create()
         
-        
+
 
 if __name__ == "__main__":
     main()

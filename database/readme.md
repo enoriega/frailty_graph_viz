@@ -39,6 +39,11 @@ If the container is not running, restart it. ```docker ps -a``` will give the ac
 ```sh
 docker restart <containerId>
 ```
+or 
+```sh
+docker restart frailty_db_server
+```
+
 
 Access the database:
 ```sh
@@ -73,12 +78,12 @@ psql -U postgres
 
 ### 1. Create Database and Insert Data
 
-You can create the database and insert data using the `create-db` command.
+You can create the database and insert data by running the `create_database.py` file.
 
 **Command Syntax:**
 
 ```sh
-python main.py create-db --url-db <DATABASE_URL> --data <DATA_PATH> --metadata <METADATA_PATH>
+python create_database.py --url-db <DATABASE_URL> --data <DATA_PATH> --metadata <METADATA_PATH>
 ```
 
 **Arguments:**
@@ -90,18 +95,18 @@ python main.py create-db --url-db <DATABASE_URL> --data <DATA_PATH> --metadata <
 **Example:**
 
 ```sh
-python main.py create-db -u postgresql://postgres:password@localhost/mydatabase -d data/ -m articles_metadata.json
+python create_database.py -u postgresql://postgres:mysecretpassword@localhost/mydatabase -d data/ -m articles_metadata.json
 ```
 
 
 ### 2. Initiate FastAPI Server
 
-You can start the FastAPI server using the `query-fastapi` command.
+You can start the FastAPI server by running `database_api.py` file.
 
 **Command Syntax:**
 
 ```sh
-python main.py query-fastapi --url-db <DATABASE_URL> --host-fastapi <HOST> --port <PORT>
+python database_api.py --url-db <DATABASE_URL> --host-fastapi <HOST> --port <PORT>
 ```
 
 **Arguments:**
@@ -113,12 +118,13 @@ python main.py query-fastapi --url-db <DATABASE_URL> --host-fastapi <HOST> --por
 **Example:**
 
 ```sh
-python main.py query-fastapi -u postgresql://postgres:password@localhost/mydatabase -hf 127.0.0.1 -p 8000
+python database_api.py -u postgresql://postgres:mysecretpassword@localhost/mydatabase -hf 127.0.0.1 -p 8000
 ```
 
 ## Project Structure
 
-- `main.py`: The main script that parses arguments and calls the appropriate functions.
+- `create_database.py`: The script that creates the schema and the database.
+- `database_api.py`: The script to run the database API.
 - `models.py`: Contains the database models.
 - `data/`: Directory containing the data files.
 - `articles_metadata.json`: Metadata file for the articles.

@@ -1,0 +1,6 @@
+sqlmodel
+tqdm
+psycopg2-binary
+fastapi
+multipledispatch
+sqlalchemy-utils
