@@ -1,16 +1,10 @@
-# import os
-# import json
+import uvicorn
 import argparse
-# from tqdm import tqdm
 from models import *
-# from pathlib import Path
+from fastapi import FastAPI
 from sqlalchemy import func
 from multipledispatch import dispatch
 from sqlmodel import create_engine, Session, select
-# from sqlalchemy_utils import database_exists, create_database
-
-import uvicorn
-from fastapi import FastAPI
 
 
 
@@ -166,6 +160,20 @@ class query:
                     }
                     neighbors.append(obj)
             return neighbors
+        
+        
+        @self.app.get("/article_text/{PMCID}")
+        def get_article_text(pmcid:str):
+            
+            pmcid = pmcid.upper()
+            pmcid = pmcid if pmcid.startswith('PMC') else f'PMC{pmcid}'
+            
+            with Session(self.engine) as session:
+                article = session.exec(select(Article).where(Article.name == pmcid)).first()
+                if article is None:
+                    return ""
+                
+                return article.text
 
 
         # get_interactions('uniprot:P54829')
@@ -173,6 +181,7 @@ class query:
         # get_evidences2('uniprot:P54829', 'pfam:PF02985')
         # get_evidences3('uniprot:P54829', 'pfam:PF02985', True, False)
         # get_neighbors('uniprot:P54829')
+        # get_article_text('PMC8910733')
 
 
 

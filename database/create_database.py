@@ -28,6 +28,9 @@ class create_db:
     def import_data(self):
         with open(self.metadata_path, 'r') as f:
             metadata = json.load(f)
+            
+        if '.DS_Store' in os.listdir(self.data_path):
+            os.remove(os.path.join(self.data_path, '.DS_Store'))    # Remove .DS_Store file to prevent UnicodeDecodeError
         
         files = os.listdir(self.data_path)
         for file_name in tqdm(files):
@@ -41,7 +44,7 @@ class create_db:
                         print(f'Error reading {file_name}: {e}')
                         continue
                     
-                    if not data:
+                    if not data['mentions']:
                         continue
 
                     file_name = file_name[3:-8]
@@ -53,9 +56,10 @@ class create_db:
                     article_url = f"https://www.ncbi.nlm.nih.gov/pmc/articles/PMC{file_name}/"
                     article_name = f"PMC{file_name}"
                     article_publish_date = "None"
+                    article_text = data['text']
                     
                     with Session(self.engine) as session:
-                        for item in data:
+                        for item in data['mentions']:
                             controller_participant = session.exec(select(Participant).where(Participant.kb_name==item['controller_id'][0], Participant.kb_id==item['controller_id'][1])).first()
                             if controller_participant is None:
                                 controller_participant = Participant(kb_name=item['controller_id'][0], kb_id=item['controller_id'][1])
@@ -99,9 +103,9 @@ class create_db:
                                 session.commit()
                                 session.refresh(journal)
                             
-                            article = session.exec(select(Article).where(Article.doi==article_doi, Article.url==article_url, Article.name==article_name, Article.publish_date==article_publish_date, Article.journal_id==journal.id)).first()
+                            article = session.exec(select(Article).where(Article.doi==article_doi, Article.url==article_url, Article.name==article_name, Article.publish_date==article_publish_date, Article.text==article_text, Article.journal_id==journal.id)).first()
                             if article is None:
-                                article = Article(doi=article_doi, url=article_url, name=article_name, publish_date=article_publish_date, journal_id=journal.id)
+                                article = Article(doi=article_doi, url=article_url, name=article_name, publish_date=article_publish_date, text=article_text, journal_id=journal.id)
                                 session.add(article)
                                 session.commit()
                                 session.refresh(article)

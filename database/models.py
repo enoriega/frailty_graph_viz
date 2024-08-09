@@ -1,13 +1,13 @@
-from sqlmodel import SQLModel, Field, create_engine, Session, Relationship
-from sqlalchemy.orm import relationship
+from sqlmodel import SQLModel, Field, Relationship
+# from sqlalchemy.orm import relationship
 from typing import Optional, List
-import os
 
 # Define the Journal model
 class Journal(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: Optional[str]
     impact_factor: Optional[float]
+    issn: Optional[str]
     
     # Relationships
     articles: List["Article"] = Relationship(back_populates="journal")
@@ -16,10 +16,11 @@ class Journal(SQLModel, table=True):
 # Define the Article model
 class Article(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    provenance: Optional[str]
+    doi: Optional[str]
     url: Optional[str]
     name: Optional[str]
-    publish_date: Optional[str]
+    publish_date: Optional[str]     ## TODO: may need to change it to date type in future
+    text: Optional[str]
     journal_id: Optional[int] = Field(default=None, foreign_key="journal.id")
     
     # Relationships
@@ -35,7 +36,7 @@ class Participant(SQLModel, table=True):
     kb_id: Optional[str]
     
     # Relationships
-    participantdescriptions: Optional[List["ParticipantDescription"]] = Relationship(back_populates="participant")  ## may need to remove the optional if it's not needed
+    participantdescriptions: Optional[List["ParticipantDescription"]] = Relationship(back_populates="participant")  ## TODO: may need to remove the optional if it's not needed
     interactions_controller: List["Interaction"] = Relationship(back_populates="controller_participant", sa_relationship_kwargs={"foreign_keys": "Interaction.controller"})
     interactions_controlled: List["Interaction"] = Relationship(back_populates="controlled_participant", sa_relationship_kwargs={"foreign_keys": "Interaction.controlled"})
 
