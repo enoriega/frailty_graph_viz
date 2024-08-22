@@ -20,6 +20,26 @@ class query:
 
 
     def setup_routes(self):
+
+        @self.app.get("/interactions-in-article/{article_id}")
+        def get_article_interactions(article_id:str):
+            with Session(self.engine) as session:
+                interactions = session.exec(
+                    select(Evidence)
+                     .join(Interaction, Interaction.id == Evidence.interaction_id)
+                     .join(Article, Article.id == Evidence.article_id)
+                     .where(Article.name == article_id)
+                )
+
+                res = [{
+                            "event_start":e.event_start, "event_end":e.event_end,
+                            "trigger_start":e.trigger_start, "trigger_end":e.trigger_end,
+                            "controller_start":e.controller_start, "controller_end":e.controller_end,
+                            "controlled_start":e.controlled_start, "controlled_end":e.controlled_end,
+                        } 
+                        for e in interactions]
+
+            return res
         
         @self.app.get("/interactions/{participiant}")
         def get_interactions(participiant:str):

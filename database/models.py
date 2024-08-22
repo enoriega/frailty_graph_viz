@@ -61,6 +61,16 @@ class Interaction(SQLModel, table=True):
 # Define the Evidence model
 class Evidence(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
+    sentence_start: Optional[int]
+    sentence_end:  Optional[int]
+    event_start: Optional[int]
+    event_end: Optional[int]
+    trigger_start: Optional[int]
+    trigger_end: Optional[int]
+    controller_start: Optional[int]
+    controller_end: Optional[int]
+    controlled_start: Optional[int]
+    controlled_end: Optional[int]
     text: Optional[str]
     markup: Optional[str]
     article_id: Optional[int] = Field(default=None, foreign_key="article.id")

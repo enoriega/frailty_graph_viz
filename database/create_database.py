@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import argparse
 from tqdm import tqdm
@@ -16,6 +17,7 @@ class create_db:
         self.data_path = data_path
         self.metadata_path = metadata_path
         self.engine = create_engine(self.url_db, echo=False)
+        self.pmcid_pattern = re.compile(r"\.*(?P<PMCID>PMC\d+).*\.json")
         
         if not database_exists(self.engine.url):
             create_database(self.engine.url)
@@ -29,32 +31,35 @@ class create_db:
         with open(self.metadata_path, 'r') as f:
             metadata = json.load(f)
             
-        if '.DS_Store' in os.listdir(self.data_path):
-            os.remove(os.path.join(self.data_path, '.DS_Store'))    # Remove .DS_Store file to prevent UnicodeDecodeError
         
-        files = os.listdir(self.data_path)
-        for file_name in tqdm(files):
-            file_path = os.path.join(self.data_path, file_name)
+        files = list(Path(self.data_path).glob("*.json"))
+        for file_path in tqdm(files):
+            # file_path = os.path.join(self.data_path, file_name)
             
-            if os.path.isfile(file_path):
-                with open(file_path, 'r') as f:
+            
+            with file_path.open('r') as f:
+
+                match = self.pmcid_pattern.match(file_path.name)
+
+                if match:
+
                     try:
                         data = json.load(f)
-                    except json.JSONDecodeError as e:
-                        print(f'Error reading {file_name}: {e}')
+                    except Exception as e:
+                        print(f'Error reading {file_path}: {e}')
                         continue
                     
                     if not data['mentions']:
                         continue
 
-                    file_name = file_name[3:-8]
-                    journal_name = metadata[file_name]['journal']['journal_id']
-                    journal_impact_factor = metadata[file_name]['journal']['impact_factor']
-                    journal_issn = metadata[file_name]['journal']['issn']
+                    pmc_id = match.group("PMCID")
+                    journal_name = metadata[pmc_id]['journal']['journal_id']
+                    journal_impact_factor = metadata[pmc_id]['journal']['impact_factor']
+                    journal_issn = metadata[pmc_id]['journal']['issn']
                     
-                    article_doi = metadata[file_name]['article']['doi']
-                    article_url = f"https://www.ncbi.nlm.nih.gov/pmc/articles/PMC{file_name}/"
-                    article_name = f"PMC{file_name}"
+                    article_doi = metadata[pmc_id]['article']['doi']
+                    article_url = f"https://www.ncbi.nlm.nih.gov/pmc/articles/PMC{pmc_id}/"
+                    article_name = pmc_id
                     article_publish_date = "None"
                     article_text = data['text']
                     
@@ -118,10 +123,21 @@ class create_db:
                                 session.refresh(significance)
                                 
                             text = self.prepare_text(item['sentence_tokens'])
+                            sentence_start, sentence_end = item.get("sentence_char_span", (None, None))
+                            event_start, event_end = item.get("event_char_span", (None, None))
+                            trigger_start, trigger_end = item.get("trigger_char_span", (None, None))
+                            controller_start, controller_end = item.get("controller_char_span", (None, None))
+                            controlled_start, controlled_end = item.get("controlled_char_span", (None, None))
                             markup=self.prepare_text(self.prepare_markup(item['sentence_tokens'], item['event_indices'], item['controller_indices'], item['controlled_indices'], item['trigger_indices'], item['label']))
                             evidence = session.exec(select(Evidence).where(Evidence.text==text, Evidence.markup==markup, Evidence.article_id==article.id, Evidence.interaction_id==interaction.id)).first()
                             if evidence is None:
-                                evidence = Evidence(text=text, markup=markup, article_id=article.id, interaction_id=interaction.id)
+                                evidence = Evidence(text=text,
+                                                     sentence_start= sentence_start, sentence_end = sentence_end,
+                                                     event_start=event_start, event_end=event_end,
+                                                     trigger_start=trigger_start, trigger_end=trigger_end,
+                                                     controller_start=controller_start, controller_end=controller_end,
+                                                     controlled_start=controlled_start, controlled_end=controlled_end,
+                                                     markup=markup, article_id=article.id, interaction_id=interaction.id)
                                 session.add(evidence)
                                 session.commit()
                                 session.refresh(evidence)
