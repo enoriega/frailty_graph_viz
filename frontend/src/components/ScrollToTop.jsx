@@ -33,7 +33,7 @@ export default function ScrollToTop() {
     <div className="scroll-to-top">
       {isVisible && 
         <div onClick={scrollToTop}>
-		  <Button variant="primary" size="lg"><span style={{position:"relative", bottom:".1em"}}>▲</span> Scroll to top</Button>
+		  <Button variant="secondary" size="lg"><span style={{position:"relative", bottom:".1em"}}>▲</span> Scroll to top</Button>
         </div>}
     </div>
   );

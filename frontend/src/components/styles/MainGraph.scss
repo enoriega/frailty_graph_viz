@@ -1,94 +1,29 @@
-// Cluster bg colors
-$colorCategory1: #d282beff; // middle-purple
-$colorCategory2: #a6d9efff; // uranian-blue
-$colorCategory3: #ffa770ff; // atomic-tangerine
-$colorCategory4: #e5f684ff; // mindaro
-// https://coolors.co/4e7e72-fe9c9a-c1aa85-848a9a
-$colorCategory5: #4e7e72;
-$colorCategory6: #fe9c9a;
-$colorCategory7: #c1aa85;
-$colorCategory8: #848a9a;
-
-
-$nodeColorCategory1: #8a2a44;
-$nodeColorCategory2: #10712b;
-$nodeColorCategory3: #411c58;
-$nodeColorCategory4: #00308e;
-
-// https://coolors.co/1f332e-fd2521-886e44-494e5a
-$nodeColorCategory5: #1f332e;
-$nodeColorCategory6: #fd2521;
-$nodeColorCategory7: #886e44;
-$nodeColorCategory8: #494e5a;
 
 .fullsize {
   width: 100%;
   height: 100%;
 }
 
-// Cluster background
-g.hullgroup {
-  transition: opacity 0.5s ease;
-  path.hull_1 {
-    fill: $colorCategory1;
-  }
-
-  path.hull_2 {
-    fill: $colorCategory2;
-  }
-
-  path.hull_3 {
-    fill: $colorCategory3;
-  }
-
-  path.hull_4 {
-    fill: $colorCategory4;
-  }
-
-  path.hull_5 {
-    fill: $colorCategory5;
-  }
-
-  path.hull_6 {
-    fill: $colorCategory6;
-  }
-
-  path.hull_7 {
-    fill: $colorCategory7;
-  }
-
-  path.hull_8 {
-    fill: $colorCategory8;
-  }
-}
 
 g.linkgroup {
-  g line {
+  g path {
     transition: opacity 0.5s ease, stroke-width 0.5s;
     stroke-width: 1px;
+    stroke: black;
   }
 
-  g.betweencategory line {
-    stroke: rgb(0, 0, 0);
-  }
-
-  g.intracategory line {
-    stroke: lightblue;
-  }
-
-
-  g.hovered line {
+  g.hovered path {
     transition: opacity 0s, stroke-width 0s !important;
     stroke-width: 3px !important;
     opacity: 0.8 !important;
   }
 
-  g.largehovered line {
+  g.largehovered path {
     transition: opacity 0s, stroke-width 0s !important;
     stroke-width: 8px !important;
     opacity: 0.8 !important;
   }
-  g.largehovered line:hover {
+  g.largehovered path:hover {
     stroke-width: 12px !important;
     opacity: 1 !important;
   }
@@ -111,7 +46,9 @@ g.nodegroup {
       cursor: pointer;
     }
     circle.hovered {
-      stroke: blue;
+      // stroke: darkgray!important;
+      -webkit-filter: drop-shadow( -10px 10px 2px rgba(0, 0, 0, .7));
+      filter: drop-shadow( -10px 10px 2px rgba(0, 0, 0, .7));
       stroke-width: 8px;
     }
     text {
@@ -125,7 +62,7 @@ g.nodegroup {
   }
 
   g.pinned circle {
-    stroke: red !important;
+    stroke: black !important;
     stroke-width: 8px !important;
   }
 

@@ -52,14 +52,15 @@ export default function WeightPanel({ updateWeightValues, useButton = false, but
 
 			{isExpanded ?
 				<>
-					<LatexFormula coefficients={sliderValues} />
+					<h5 style={{marginLeft: 20, marginTop:20}}>Weight Coefficients</h5>
 					<div>
-						<SliderComponent label='Frequency' value={sliderValues.frequency} onChange={v => sliderStateUpdate('frequency', v)} />
-						<SliderComponent label='Has significance' value={sliderValues.hasSignificance} onChange={v => sliderStateUpdate('hasSignificance', v)} />
-						<SliderComponent label='Avg impact factor' value={sliderValues.avgImpactFactor} onChange={v => sliderStateUpdate('avgImpactFactor', v)} />
-						<SliderComponent label='Max impact factor' value={sliderValues.maxImpactFactor} onChange={v => sliderStateUpdate('maxImpactFactor', v)} />
-						<SliderComponent label='1 - Avg p-value' value={sliderValues.pValue} onChange={v => sliderStateUpdate('pValue', v)} />
+						<SliderComponent label='$$F\ \text{(Frequency)}$$ ' value={sliderValues.frequency} onChange={v => sliderStateUpdate('frequency', v)} />
+						<SliderComponent label='$$S\ \text{(Has significance)}$$' value={sliderValues.hasSignificance} onChange={v => sliderStateUpdate('hasSignificance', v)} />
+						<SliderComponent label='$$I_a\ \text{(Avg impact factor)}$$' value={sliderValues.avgImpactFactor} onChange={v => sliderStateUpdate('avgImpactFactor', v)} />
+						<SliderComponent label='$$I_m\ \text{(Max impact factor)}$$' value={sliderValues.maxImpactFactor} onChange={v => sliderStateUpdate('maxImpactFactor', v)} />
+						<SliderComponent label='$$p\ \text{(1 - Avg p-value)}$$' value={sliderValues.pValue} onChange={v => sliderStateUpdate('pValue', v)} />
 					</div>
+					<LatexFormula coefficients={sliderValues} />
 					{ useButton ? 
 						<Row>
 							<Col style={{textAlign: "center"}}>

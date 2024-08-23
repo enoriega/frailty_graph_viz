@@ -1,3 +1,5 @@
+import Color from 'color';
+
 export function groupBy(arr, criteria) {
     return arr.reduce(function (acc, currentValue) {
         const group = criteria(currentValue)
@@ -70,26 +72,125 @@ export const calculateCategoryCentersEllipse = (cats, a, b, width, height) => [.
     return [x, y];
 });
 
-export const categoryNodeColors = {
-    1: "#411c58",
-    2: "#00308e",
-    3: "#8a2a44",
-    4: "#10712b",
-    // https://coolors.co/4e7e72-fe9c9a-c1aa85-848a9a
-    5: "#1f332e", 
-    6: "#fd2521", 
-    7: "#886e44", 
-    8: "#494e5a", 
+// returns a new object with the values at each key mapped using mapFn(value)
+function objectMap(object, mapFn) {
+  return Object.keys(object).reduce(function(result, key) {
+    result[key] = mapFn(object[key])
+    return result
+  }, {})
 }
 
-export const categoryHullColors = {
-    1: "#d282be",
-    2: "#a6d9ef",
-    3: "#ffa770",
-    4: "#e5f684",
-    // https://coolors.co/4e7e72-fe9c9a-c1aa85-848a9a
-    5: "#4e7e72",
-    6: "#fe9c9a",
-    7: "#c1aa85",
-    8: "#848a9a",
+
+export const influenceLinkColors = [
+    { id:"Pos", value: "#a1d76a"},
+    { id:"Neu", value: "lightgrey"},
+    { id:"Neg", value: "#e9a3c9"},
+];
+
+export const influenceNodeColors = influenceLinkColors;
+
+
+
+const SELECTED_HULL_PALETTE = 11;
+const SELECTED_NODE_PALETTE = 4;
+
+const categoryHullColorsStr = [
+    // All color palettes from ColorBrewer2 with 5 qualitative colors
+    ['#7fc97f','#beaed4','#fdc086','#ffff99','#386cb0'], // 0
+    ['#1b9e77','#d95f02','#7570b3','#e7298a','#66a61e'], // 1
+    ['#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99'], // 2
+    ['#fbb4ae','#b3cde3','#ccebc5','#decbe4','#fed9a6'], // 3
+    ['#b3e2cd','#fdcdac','#cbd5e8','#f4cae4','#e6f5c9'], // 4
+    ['#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00'], // 5
+    ['#66c2a5','#fc8d62','#8da0cb','#e78ac3','#a6d854'], // 6
+    ['#8dd3c7','#ffffb3','#bebada','#fb8072','#80b1d3'], // 7
+
+    // From Colour Schemes by Paul Tol (https://personal.sron.nl/~pault/data/colourschemes.pdf)
+    // bright scheme: [blue, red, green, yellow, cyan]
+    ['#4477aa', '#ee6677', '#228833', '#ccbb44', '#66ccee'], // 8
+    // bright scheme without red and green and added teal: [blue, yellow, cyan, purple, teal]
+    ['#4477aa', '#ccbb44', '#66ccee', '#aa3377', '#009988'], // 9
+    // light scheme: [light blue, light cyan, mint, pear, olive, light yellow, orange, pink]
+    ['#77aadd', '#99ddff', '#44bb99', '#bbcc33', '#aaaa00'], // 10
+
+    // Final scheme
+    // modified light scheme: [light blue, mint, pear, orange, pink]
+    ['#77aadd', '#44bb99', '#bbcc33', '#EE8866', '#ffaabb'], // 11
+]
+
+export const categoryHullColors = {};
+let i = 1;
+categoryHullColorsStr[SELECTED_HULL_PALETTE].map(c => Color(c)).forEach(color => {
+    categoryHullColors[i] = color
+    i += 1;
+})
+
+// export const categoryHullColors = objectMap(categoryNodeColors, color => color.fade(0.8))
+
+const categoryNodeColorsStr = [
+    // Muted qualitative colour scheme as of Figure 4 of Color Paper
+    // Color scheme: [indigo, cyan, teal, green, olive, sand, rose, wine, purple]
+    ['#332288', '#88CCEE', '#44AA99', '#117733', '#999933', '#DDCC77', '#CC6677', '#882255', '#AA4499'], // 0
+    // Same but reordered to match corresponding hulls
+    ['#332288', '#88CCEE', '#44AA99', '#117733', '#999933', '#DDCC77', '#CC6677', '#882255', '#AA4499'], // 1
+    ['black', 'black', 'black', 'black', 'black', 'black', 'black'], // 2
+    categoryHullColorsStr[SELECTED_HULL_PALETTE], // 3
+    ['#332288', '#117733', '#999933', '#AA4499', '#882255'] // 4
+
+
+];
+
+export const categoryNodeColors = {};
+i = 1;
+categoryNodeColorsStr[SELECTED_NODE_PALETTE].map(c => Color(c)).forEach(color => {
+    categoryNodeColors[i] = color
+    i += 1;
+})
+
+
+
+            
+
+export function createArc(x1,y1,x2,y2) {
+    return `
+    M ${x1} ${y1}
+    A 100 100 0 0 0 ${x2} ${y2}
+    `
+}
+export function createLine(x1,y1,x2,y2) {
+    return `
+    M ${x1} ${y1}
+    L ${x2} ${y2}
+    `
+}
+
+// We should get this from backend. But for now, we hardcode it here.
+export const categories = {
+	"uniprot": "Proteins or Gene Products",
+	"mesh": "Diseases",
+	"go": "Biological Process",
+	"fplx": "Proteins or Gene Products",
+	"pubchem": "Chemicals",
+	"interpro": "Proteins or Gene Products",
+	"proonto": "Proteins or Gene Products",
+	"chebi": "Chemicals",
+	"pfam": "Proteins or Gene Products",
+	"frailty": "Biological Process",
+	"bioprocess": "Biological Process",
+	"atcc": "Cells, Organs and Tissues",
+	"cellosaurus": "Cells, Organs and Tissues",
+	"cl": "Cells, Organs and Tissues",
+	"tissuelist": "Cells, Organs and Tissues",
+	"uberon": "Cells, Organs and Tissues",
+}
+export const category_encoding = {
+    'Proteins or Gene Products': 1,
+    'Diseases': 2,
+    'Biological Process': 3,
+    'Chemicals': 4,
+    "Cells, Organs and Tissues": 5
+}
+
+export function getCategoryFromId(id) {
+    return category_encoding[categories[id.split(':')[0]]]
 }

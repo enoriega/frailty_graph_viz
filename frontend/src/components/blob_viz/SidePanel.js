@@ -62,11 +62,11 @@ function SidePanel({ currentView, simulation, maxLinkDist, apiUrls, updateSelect
                     <ul className="btn-toggle-nav list-unstyled fw-normal pb-1 small">
                         <li>
                             <label htmlFor="interclusterEdgeOpacity" className="form-label">Inter Category Link Opacity</label>
-                            <input type="range" className="form-range" min="0" max="1" step="0.01" id="interclusterEdgeOpacity" defaultValue="0.1" />
+                            <input type="range" className="form-range" min="0" max="1" step="0.01" id="interclusterEdgeOpacity" defaultValue="0.03" />
                         </li>
                         <li>
                             <label htmlFor="intraclusterEdgeOpacity" className="form-label">Between Category Link Opacity</label>
-                            <input type="range" className="form-range" min="0" max="1" step="0.01" id="intraclusterEdgeOpacity" defaultValue="0.1" />
+                            <input type="range" className="form-range" min="0" max="1" step="0.01" id="intraclusterEdgeOpacity" defaultValue="0.03" />
                         </li>
                         <li>
                             <label htmlFor="nodeLabelOpacity" className="form-label">Entity Label Opacity</label>

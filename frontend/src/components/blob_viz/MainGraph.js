@@ -8,7 +8,7 @@ import "../styles/MainGraph.scss";
 import WeightPanel from '../weight/WeightPanel';
 import SidePanel from "./SidePanel";
 import EvidencePanelWrapper from './EvidencePanelWrapper';
-import { idToClass, calculateCategoryCenters, calculateCategoryCentersEllipse, normalizeDistance, categoryNodeColors } from '../../utils/utils';
+import { idToClass, calculateCategoryCenters, calculateCategoryCentersEllipse, normalizeDistance, categoryNodeColors, categoryHullColors, createLine, createArc, influenceLinkColors, influenceNodeColors } from '../../utils/utils';
 import BlobLegends from './BlobLegends';
 import NodeDetail from './NodeDetail';
 
@@ -57,19 +57,6 @@ const forceProperties = {
         distanceFactor: 5
     }
 };
-
-const influenceLinkColors = [
-    { id:"Pos", value: "#4bb543"},
-    { id:"Neu", value: "grey"},
-    { id:"Neg", value: "#ff8484"},
-];
-
-const influenceNodeColors = [
-    { id:"Pos", value: "#5cc654"},
-    { id:"Neu", value: "lightgrey"},
-    { id:"Neg", value: "#ff9595"},
-];
-
 
 const updateForces = ({ simulation, maxLinkDist, categoriesDetailsLength, restart }) => {
     simulation.stop();
@@ -370,7 +357,8 @@ const MainGraph = ({ apiUrls, defaultEntities }) => {
 
         const BlobLegendsColors = Object.entries(categoriesDetails).map(([k, v]) => ({
             id: v,
-            color: categoryNodeColors[k],
+            hullColor: categoryHullColors[k],
+            nodeColor: categoryNodeColors[k],
             encoding: k
         }));;
         setBlobLegendsColors(BlobLegendsColors);
@@ -392,7 +380,8 @@ const MainGraph = ({ apiUrls, defaultEntities }) => {
             .data(Object.keys(categoriesDetails).map(key => ({ category: key })), d => d.category)
             .enter()
             .append('path')
-            .attr('class', d => 'hull_' + (d.category));
+            .attr('class', d => 'hull_' + (d.category))
+            .style('fill', d => categoryHullColors[d.category]);
 
         const newSubgraphResponse = await fetch(`${apiUrls.viz}/getbestsubgraph`, {
             method: 'POST',
@@ -450,7 +439,8 @@ const MainGraph = ({ apiUrls, defaultEntities }) => {
                         .classed('intracategory', d => !d['samecategory']);
                     lineGroup.append("text")
                         .text(d => d.freq);
-                    lineGroup.append("line")
+                    lineGroup.append("path")
+                        .attr('fill', 'none')
                         .on('mouseover', (e) => {
                             if(currentView.view !== "root") return;
                             if(nodeSelection.first) return;
@@ -624,11 +614,15 @@ const MainGraph = ({ apiUrls, defaultEntities }) => {
         updateForces({ simulation, maxLinkDist, categoriesDetailsLength, restart:false });
 
         simulation.on("tick", () => {
-            link.selectAll('line')
-                .attr("x1", d => d.source.x)
-                .attr("y1", d => d.source.y)
-                .attr("x2", d => d.target.x)
-                .attr("y2", d => d.target.y);
+            link.selectAll('path')
+                // .attr('d', d => createPath(d.source.x,d.source.y,d.target.x,d.target.y).toString())
+                .attr('d', d => d.samecategory?createArc(d.source.x,d.source.y,d.target.x,d.target.y):createLine(d.source.x,d.source.y,d.target.x,d.target.y)
+                )
+
+                // .attr("x1", d => d.source.x)
+                // .attr("y1", d => d.source.y)
+                // .attr("x2", d => d.target.x)
+                // .attr("y2", d => d.target.y);
 
             link.selectAll('text')
                 .attr('x', d => d.target.x + 20)
@@ -664,13 +658,13 @@ const MainGraph = ({ apiUrls, defaultEntities }) => {
             }
         });
 
-        d3.selectAll("g.intracategory line").style('opacity', d3.select("#interclusterEdgeOpacity").node().value);
+        d3.selectAll("g.intracategory path").style('opacity', d3.select("#interclusterEdgeOpacity").node().value);
         d3.select("#interclusterEdgeOpacity").on('change', (e) => {
-            d3.selectAll("g.intracategory line").style('opacity', e.target.value);
+            d3.selectAll("g.intracategory path").style('opacity', e.target.value);
         })
-        d3.selectAll("g.betweencategory line").style('opacity', d3.select("#intraclusterEdgeOpacity").node().value);
+        d3.selectAll("g.betweencategory path").style('opacity', d3.select("#intraclusterEdgeOpacity").node().value);
         d3.select("#intraclusterEdgeOpacity").on('change', (e) => {
-            d3.selectAll("g.betweencategory line").style('opacity', e.target.value);
+            d3.selectAll("g.betweencategory path").style('opacity', e.target.value);
         })
         d3.selectAll("g.node text").style('opacity', d3.select("#nodeLabelOpacity").node().value);
         d3.select("#nodeLabelOpacity").on('change', (e) => {
@@ -881,11 +875,8 @@ const MainGraph = ({ apiUrls, defaultEntities }) => {
                 });
 
             relationViewSimulation.on("tick", () => {
-                d3.selectAll("g.line").selectAll('line')
-                    .attr("x1", d => d.source.x)
-                    .attr("y1", d => d.source.y)
-                    .attr("x2", d => d.target.x)
-                    .attr("y2", d => d.target.y);
+                d3.selectAll("g.line").selectAll('path')
+                    .attr('d', d => d.samecategory?createArc(d.source.x, d.source.y, d.target.x,d.target.y):createLine(d.source.x,d.source.y,d.target.x,d.target.y));
 
                 d3.selectAll("g.line").selectAll('text')
                     .attr('x', d => d.target.x + 20)
@@ -899,7 +890,7 @@ const MainGraph = ({ apiUrls, defaultEntities }) => {
 
             relationViewSimulation.alpha(ALPHA_INIT).alphaTarget(ALPHA_TARGET).restart();
 
-            d3.selectAll("g.line").selectAll('line').style('display', 'none');
+            d3.selectAll("g.line").selectAll('path').style('display', 'none');
             d3.selectAll("g.line").selectAll('text').style('display', 'none');
 
             // Hide hulls and links
@@ -924,7 +915,7 @@ const MainGraph = ({ apiUrls, defaultEntities }) => {
                 relationViewSimulation.stop();
                 simulation.alpha(ALPHA_INIT).restart();
 
-                d3.selectAll("g.line").selectAll('line').style('display', 'inline-block');
+                d3.selectAll("g.line").selectAll('path').style('display', 'inline-block');
                 d3.selectAll("g.line").selectAll('text').style('display', 'inline-block');
 
                 d3.select("g.relationview g.relationlinks").transition().duration(transitionSpeed).style("opacity",0).on("end", () => {
@@ -1045,7 +1036,7 @@ const MainGraph = ({ apiUrls, defaultEntities }) => {
                                 </svg>
                             </main>
                             <div style={{
-                                width: "300px",
+                                width: "350px",
                                 display: "flex",
                                 flexDirection: "column",
                             }}>
