@@ -16,6 +16,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'react-bootstrap-range-slider/dist/react-bootstrap-range-slider.css';
 import StructuredSearch from "./StructuredSearch";
 import MainGraph from "./components/blob_viz/MainGraph";
+import ArticleViewer from "./ArticleViewer";
 
   
 // ========================================
@@ -95,6 +96,13 @@ ReactDOM.render(
 								categories: [1, 1, 1]
 							}
 						}} />
+						<ScrollToTop />
+					</>
+				} />
+
+				<Route path="article" element={
+					<>
+						<ArticleViewer apiUrls={apiUrl} article_id="PMC9917195" />
 						<ScrollToTop />
 					</>
 				} />

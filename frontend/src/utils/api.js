@@ -102,3 +102,11 @@ export function searchEntity(apiUrl, query){
 	return fetch(apiUrl  + path)
 		.then(response => response.json())
 }
+
+export function fetchArticleText(apiUrl, article_id){
+	let path = `/annotated_article_text/${article_id}`
+	let x ="http://127.0.0.1:8000" + path
+
+	return fetch(x)
+		.then(response => response.json())
+}

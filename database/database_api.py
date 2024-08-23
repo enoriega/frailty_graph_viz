@@ -8,7 +8,9 @@ from multipledispatch import dispatch
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlmodel import Session, select
+from fastapi.middleware.cors import CORSMiddleware
 from functools import lru_cache
+from itertools import tee, filterfalse
 
 
 # Dependency
@@ -26,19 +28,20 @@ router = APIRouter()
 def get_article_interactions(article_id:str, engine=Depends(get_db)):
     with Session(engine) as session:
         interactions = session.exec(
-            select(Evidence)
+            select(Evidence, Interaction)
                 .join(Interaction, Interaction.id == Evidence.interaction_id)
                 .join(Article, Article.id == Evidence.article_id)
                 .where(Article.name == article_id)
         )
 
         res = [{
+                    "event_polarity": i.polarity,
                     "event_start":e.event_start, "event_end":e.event_end,
                     "trigger_start":e.trigger_start, "trigger_end":e.trigger_end,
                     "controller_start":e.controller_start, "controller_end":e.controller_end,
                     "controlled_start":e.controlled_start, "controlled_end":e.controlled_end,
                 } 
-                for e in interactions]
+                for e, i in interactions]
 
     return res
 
@@ -183,7 +186,7 @@ def get_neighbors(participiant:str, engine=Depends(get_db)):
     return neighbors
 
 
-@router.get("/article_text/{PMCID}")
+@router.get("/article_text/{pmcid}")
 def get_article_text(pmcid:str, engine=Depends(get_db)):
     
     pmcid = pmcid.upper()
@@ -194,32 +197,76 @@ def get_article_text(pmcid:str, engine=Depends(get_db)):
         if article is None:
             return ""
         
-        return article.text
+        return {"text":article.text}
+
+@router.get("/annotated_article_text/{pmcid}")    
+def get_article_text_annotated(pmcid:str, engine=Depends(get_db)):
+    text = get_article_text(pmcid, engine)['text']
+    spanInfo = get_article_interactions(pmcid, engine)
+
+    types = ["event", "controller", "trigger", "controlled"]
+    # Flatten the spans
+    points = list()
+    for si in spanInfo:
+        polarity = si['event_polarity']
+        for ix, prefix in enumerate(types):
+            points.append((si[f'{prefix}_start'], 1, ix, polarity))
+            points.append((si[f'{prefix}_end'], 0, ix, None))
+
+    # Sort them
+    points = list(sorted(points))
+
+    # Stack the intervals to assemble final result
+    chunks = []
+    current_char = 0 # Start at the first char
+    for cix, state, type_, polarity in points:
+        if current_char < cix and cix > 0:
+            chunks.append(text[current_char:cix])
+            current_char = cix
+        if state == 1:
+            classes = []
+            if types[type_] == "event":
+                classes.append("event")
+                classes.append("selected_evidence")
+            else:
+                classes.append("argument")
+                if types[type_] == "trigger":
+                    classes.append("trigger")
+            chunks.append(f'<span class="{" ".join(classes)}">')
+        else:
+            if type_ == len(types):
+                type_= 0
+            chunks.append(f'</span>')
+    # Append the tail of the text
+    chunks.append(text[current_char:])
+
+    # Build the annotated string
+    annotated = ''.join(chunks)
+
+    # Replace new lines by breaks
+    ret = annotated.replace("\n", "<br />")
+
+    # Return the value
+    return {"text":ret}
+
+            
+            
+
+
+    return text
 
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app.include_router(router)
-
-# def start_server(self):
-#     print(f"Starting FastAPI server with database URL: {self.url_db} and host: http://{self.host}:{self.port}")
-#     uvicorn.run(self.app, host=self.host, port=self.port)
-
-
-
-
-# def main():
-#     default_url = 'postgresql://postgres:mysecretpassword@localhost/postgres'
-    
-#     parser = argparse.ArgumentParser(description='Access the database via RESTAPI')
-#     parser.add_argument('--url-db', '-u', default=default_url, type=str, help='Database URL')
-#     parser.add_argument('--host-fastapi', '-hf', default='127.0.0.1', type=str, help='FastAPI host')
-#     parser.add_argument('--port', '-p', default=8000, type=int, help='FastAPI port')
-    
-#     args = parser.parse_args()
-    
-#     query(args.url_db, args.host_fastapi, args.port).start_server()
 
         
 
-# if __name__ == "__main__":
-#     main()
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
