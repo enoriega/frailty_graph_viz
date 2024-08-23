@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import {fetchArticleText, fetchEvidence} from "./utils/api";
+import {fetchArticleText} from "./utils/api";
+import {useParams} from "react-router-dom";
 import './index_interface.css';
+import './components/evidence_panel.css'
 
-export default function ArticleViewer({apiUrl, article_id}) {
-    const [loading, setLoading] = useState(true);
+export default function ArticleViewer({apiUrl}) {
     const [articleText, setArticleText] = useState('PLACEHOLDER');
+    const routeParams = useParams();
+    const article_id = routeParams.article_id;
     const articleTitle = article_id;
 
     useEffect(() => {
@@ -17,7 +20,9 @@ export default function ArticleViewer({apiUrl, article_id}) {
     }, [])
 
     return (<>
+                <div className="evidence_pane">
                 <h1>{articleTitle}</h1>
                 <span dangerouslySetInnerHTML={{__html: articleText}}></span>
+                </div>
             </>)
 }

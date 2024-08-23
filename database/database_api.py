@@ -195,9 +195,11 @@ def get_article_text(pmcid:str, engine=Depends(get_db)):
     with Session(engine) as session:
         article = session.exec(select(Article).where(Article.name == pmcid)).first()
         if article is None:
-            return ""
+            text = ""
+        else:
+            text = article.text
         
-        return {"text":article.text}
+        return {"text":text}
 
 @router.get("/annotated_article_text/{pmcid}")    
 def get_article_text_annotated(pmcid:str, engine=Depends(get_db)):
@@ -227,7 +229,9 @@ def get_article_text_annotated(pmcid:str, engine=Depends(get_db)):
             classes = []
             if types[type_] == "event":
                 classes.append("event")
-                classes.append("selected_evidence")
+                # classes.append("selected_evidence")
+                if polarity is not None:
+                    classes.append("Positive_activation" if polarity else "Negative_activation")
             else:
                 classes.append("argument")
                 if types[type_] == "trigger":

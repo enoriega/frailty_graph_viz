@@ -1,4 +1,4 @@
-import React, {useEffect} from "react";
+import React from "react";
 import EvidenceTaggerPanel from "./EvidenceTaggerPanel";
 import EvidenceItem from "./evidence_panel/EvidenceItem";
 import { fetchEvidenceLabels, assignEvidenceLabels } from "../utils/api";
@@ -36,7 +36,11 @@ export default function EvidencePanel({ apiUrl, items, header }) {
 	items = items.map((i, ix) => {
 
 		// Build the link to the network view
-		const urlPath = `/viz?src=${i.source}&dst=${i.destination}&bidirect`
+		// const urlPath = `/viz?src=${i.source}&dst=${i.destination}&bidirect`
+
+		const pattern =  /PMC\d+/;
+		const matches = i.hyperlink.match(pattern);
+		const urlPath = matches ? "/article/" + matches[0] : "#";
 
 		return (<EvidenceItem 
 			key={ix}

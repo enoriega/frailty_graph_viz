@@ -100,9 +100,9 @@ ReactDOM.render(
 					</>
 				} />
 
-				<Route path="article" element={
+				<Route path="article/:article_id" element={
 					<>
-						<ArticleViewer apiUrls={apiUrl} article_id="PMC9917195" />
+						<ArticleViewer apiUrls={apiUrl} />
 						<ScrollToTop />
 					</>
 				} />
