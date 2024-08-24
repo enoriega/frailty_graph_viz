@@ -1,14 +1,13 @@
 """ Starts the backend """
 
 import logging
-from argparse import ArgumentParser
 
-import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .dependencies import get_evidence_sentences_and_frequencies
 from .api import api_router
 from .viz_api import api_router as viz_api_router
+from .database.database_api import api_router as database_api_router
 
 logger = logging.getLogger("frailty_viz_main")
 
@@ -29,3 +28,4 @@ app.add_middleware(
 
 app.include_router(api_router)
 app.include_router(viz_api_router)
+app.include_router(database_api_router, prefix="/data")

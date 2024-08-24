@@ -21,10 +21,10 @@ def get_db():
     return engine
 
 
-router = APIRouter()
+api_router = APIRouter()
 
 
-@router.get("/interactions-in-article/{article_id}")
+@api_router.get("/interactions-in-article/{article_id}")
 def get_article_interactions(article_id:str, engine=Depends(get_db)):
     with Session(engine) as session:
         interactions = session.exec(
@@ -45,7 +45,7 @@ def get_article_interactions(article_id:str, engine=Depends(get_db)):
 
     return res
 
-@router.get("/interactions/{participiant}")
+@api_router.get("/interactions/{participiant}")
 def get_interactions(participiant:str, engine=Depends(get_db)):
     
     kb_name, kb_id = participiant.strip().split(':', 1)
@@ -82,7 +82,7 @@ def get_interactions(participiant:str, engine=Depends(get_db)):
 
 
 @dispatch(int)
-@router.get("/evidences/{interaction_id}")
+@api_router.get("/evidences/{interaction_id}")
 def get_evidences(interaction_id:int, engine=Depends(get_db)):
     evidences = []
     with Session(engine) as session:
@@ -98,7 +98,7 @@ def get_evidences(interaction_id:int, engine=Depends(get_db)):
 
 
 @dispatch(str, str)
-@router.get("/evidences/{controller}/{controlled}")
+@api_router.get("/evidences/{controller}/{controlled}")
 def get_evidences(controller:str, controlled:str, engine=Depends(get_db)):
     
     controller_kb_name, controller_kb_id = controller.strip().split(':', 1)
@@ -125,7 +125,7 @@ def get_evidences(controller:str, controlled:str, engine=Depends(get_db)):
 
 
 @dispatch(str, str, bool, bool)
-@router.get("/evidences/{controller}/{controlled}/{polarity}/{directed}")
+@api_router.get("/evidences/{controller}/{controlled}/{polarity}/{directed}")
 def get_evidences(controller:str, controlled:str, polarity:bool, directed:bool, engine=Depends(get_db)):
     
     controller_kb_name, controller_kb_id = controller.strip().split(':', 1)
@@ -152,7 +152,7 @@ def get_evidences(controller:str, controlled:str, polarity:bool, directed:bool, 
     return evidences
 
 
-@router.get("/neighbors/{participiant}")
+@api_router.get("/neighbors/{participiant}")
 def get_neighbors(participiant:str, engine=Depends(get_db)):
     
     kb_name, kb_id = participiant.strip().split(':', 1)
@@ -186,7 +186,7 @@ def get_neighbors(participiant:str, engine=Depends(get_db)):
     return neighbors
 
 
-@router.get("/article_text/{pmcid}")
+@api_router.get("/article_text/{pmcid}")
 def get_article_text(pmcid:str, engine=Depends(get_db)):
     
     pmcid = pmcid.upper()
@@ -201,7 +201,7 @@ def get_article_text(pmcid:str, engine=Depends(get_db)):
         
         return {"text":text}
 
-@router.get("/annotated_article_text/{pmcid}")    
+@api_router.get("/annotated_article_text/{pmcid}")    
 def get_article_text_annotated(pmcid:str, engine=Depends(get_db)):
     text = get_article_text(pmcid, engine)['text']
     spanInfo = get_article_interactions(pmcid, engine)
@@ -253,24 +253,15 @@ def get_article_text_annotated(pmcid:str, engine=Depends(get_db)):
     # Return the value
     return {"text":ret}
 
-            
-            
-
-
-    return text
-
-
-app = FastAPI()
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-app.include_router(router)
-
-        
 
 if __name__ == "__main__":
+    app = FastAPI()
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+    app.include_router(api_router)
     uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -104,9 +104,8 @@ export function searchEntity(apiUrl, query){
 }
 
 export function fetchArticleText(apiUrl, article_id){
-	let path = `/annotated_article_text/${article_id}`
-	let x ="http://127.0.0.1:8000" + path
+	let path = `/data/annotated_article_text/${article_id}`
 
-	return fetch(x)
+	return fetch(path)
 		.then(response => response.json())
 }
