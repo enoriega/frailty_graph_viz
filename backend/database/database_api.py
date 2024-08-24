@@ -8,12 +8,14 @@ from sqlalchemy import create_engine
 from sqlmodel import Session, select
 from fastapi.middleware.cors import CORSMiddleware
 from functools import lru_cache
+from ..dependencies import get_cli_args
 
 
 # Dependency
 @lru_cache()
 def get_db():
-    url_db = os.environ["CONN_STRING"]
+    args = get_cli_args()
+    url_db = args.conn_string
     engine = create_engine(url_db, echo=False, connect_args={"check_same_thread": False})
     return engine
 

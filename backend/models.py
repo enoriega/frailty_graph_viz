@@ -20,10 +20,10 @@ class UserRecord(BaseModel):
 class EvidenceItem(BaseModel):
     sentence: str
     list_item: str
-    impact: str
+    impact: float
     hyperlink: str
     markup: str
-    labels: Optional[Mapping[str, bool]]
+    labels: Optional[Mapping[str, bool]] = {}
 
     def __hash__(self):
         return hash((self.sentence, self.list_item, self.impact))

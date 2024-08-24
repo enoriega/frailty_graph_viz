@@ -28,4 +28,4 @@ app.add_middleware(
 
 app.include_router(api_router)
 app.include_router(viz_api_router)
-app.include_router(database_api_router, prefix="/data")
+app.include_router(database_api_router, prefix="/api/data")

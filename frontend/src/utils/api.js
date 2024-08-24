@@ -106,6 +106,6 @@ export function searchEntity(apiUrl, query){
 export function fetchArticleText(apiUrl, article_id){
 	let path = `/data/annotated_article_text/${article_id}`
 
-	return fetch(path)
+	return fetch(apiUrl + path)
 		.then(response => response.json())
 }
