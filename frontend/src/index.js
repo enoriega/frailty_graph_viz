@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import {
 	BrowserRouter,
+	HashRouter,
 	Routes,
 	Route
   } from "react-router-dom"
@@ -42,7 +43,7 @@ let candidateOverviewEntities = [
 ]
 
 ReactDOM.render(
-	<BrowserRouter>
+	<HashRouter>
 		<Routes>
 			<Route path="*" element={<App />}>
 				<Route index element={
@@ -117,7 +118,7 @@ ReactDOM.render(
 				/>
 			</Route>
 		</Routes>
-	</BrowserRouter>,
+	</HashRouter>,
 	rootElement
 );
   

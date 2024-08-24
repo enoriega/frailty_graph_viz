@@ -40,7 +40,7 @@ export default function EvidencePanel({ apiUrl, items, header }) {
 
 		const pattern =  /PMC\d+/;
 		const matches = i.hyperlink.match(pattern);
-		const urlPath = matches ? "/article/" + matches[0] : "#";
+		const urlPath = matches ? "/#/article/" + matches[0] : "#";
 
 		return (<EvidenceItem 
 			key={ix}
