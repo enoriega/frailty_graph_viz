@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     impact_factors: str
     records_db: str
     es_index: str
+    conn_string:str
 
     class Config:
         env_file = ".env"
