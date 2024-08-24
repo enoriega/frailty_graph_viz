@@ -1,9 +1,8 @@
-import os
 import re
 import json
 import argparse
 from tqdm import tqdm
-from models import *
+from .models import *
 from pathlib import Path
 from sqlmodel import create_engine, Session, select
 from sqlalchemy_utils import database_exists, create_database
