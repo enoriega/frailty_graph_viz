@@ -44,7 +44,7 @@ let candidateOverviewEntities = [
 ReactDOM.render(
 	<BrowserRouter>
 		<Routes>
-			<Route path="/" element={<App />}>
+			<Route path="*" element={<App />}>
 				<Route index element={
 					<>
 						<Overview 
