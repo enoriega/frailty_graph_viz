@@ -1,6 +1,6 @@
 """ Backend config schema. Doesn't include ASGI's settings """
 
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     graph_file: str
